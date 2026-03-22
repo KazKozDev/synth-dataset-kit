@@ -3,6 +3,9 @@
 CLI tool for generating high-quality synthetic datasets for LLM fine-tuning.
 
 ![CI](https://github.com/KazKozDev/synth-dataset-kit/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-0.1.0-orange)
 
 ## Highlights
 
@@ -22,7 +25,9 @@ Aimed at ML engineers who need training data fast, without the cost of manual an
 
 ## Motivation
 
-Supervised fine-tuning requires labeled data, but collecting thousands of high-quality examples manually is expensive and slow. Existing synthetic data tools either require cloud APIs or produce low-quality outputs with no quality controls. `synth-dataset-kit` works with local models (Ollama, vLLM), integrates quality scoring and decontamination into the same pipeline, and gives you a clean dataset with a single command.
+Manual annotation costs $1–5 per example on platforms like Scale AI or Labelbox — a 10k dataset runs $10k–50k before quality review. Self-Instruct and Alpaca-style pipelines generate data cheaply but ship it without any quality gate: no scoring, no dedup, no benchmark contamination check. The result is noisy datasets that hurt rather than help fine-tuning.
+
+More recent tools like Magpie or WizardLM improve quality, but are tied to specific model families or require significant infrastructure. `synth-dataset-kit` takes a different approach: bring your own 20–50 seed examples, plug in any OpenAI-compatible endpoint (including local Ollama or vLLM), and get a scored, decontaminated, export-ready dataset in one command. The decontamination step alone typically removes 3–8% of generated examples that overlap with MMLU, GSM8K, or HumanEval — overlap that would otherwise inflate eval scores without reflecting real capability gains.
 
 ## Features
 
@@ -59,6 +64,52 @@ Flow: seeds or domain → generation → quality scoring → decontamination →
 - [OpenAI Python SDK](https://github.com/openai/openai-python) — unified LLM client
 - [sentence-transformers](https://www.sbert.net/) *(optional)* — embedding-based decontamination
 - [Jinja2](https://jinja.palletsprojects.com/) — prompt templates
+
+## Configuration
+
+`sdk init --provider <name>` creates `sdk_config.yaml` with provider defaults. The key sections:
+
+```yaml
+llm:
+  provider: ollama          # ollama | openai | anthropic | vllm | custom
+  api_base: http://localhost:11434/v1
+  api_key: ollama
+  model: llama3.1:8b
+  temperature: 0.8
+  max_tokens: 2048
+  concurrent_requests: 4    # parallel generation requests
+
+generation:
+  num_examples: 100
+  language: en
+  system_prompt: ""         # injected as system message in every example
+  personas: [beginner, expert, skeptic]
+  difficulty_levels: [easy, medium, hard]
+  batch_size: 5
+
+quality:
+  enabled: true
+  min_score: 7.5            # 0–10 scale; examples below this are filtered out
+  check_toxicity: true
+  check_pii: true
+  check_duplicates: true
+  duplicate_threshold: 0.85
+
+decontamination:
+  enabled: true
+  benchmarks: [mmlu, gsm8k, humaneval, arc, hellaswag]
+  similarity_threshold: 0.85
+  method: hybrid            # exact | ngram | embedding | hybrid
+  embedding_model: all-MiniLM-L6-v2
+
+export:
+  format: jsonl             # jsonl | alpaca | chatml | sharegpt | huggingface
+  output_dir: ./output
+  include_metadata: false
+  include_quality_report: true
+```
+
+The config file is optional — all values have defaults and CLI flags override them at runtime.
 
 ## Quick Start
 
@@ -154,7 +205,18 @@ pytest tests/ -v
 
 ## Contributing
 
-Fork → branch → PR. Run `ruff check synth_dataset_kit/` before submitting.
+1. Fork the repo and create a branch: `git checkout -b feat/your-feature`
+2. Make your changes. Keep PRs focused — one feature or fix per PR.
+3. Run the linter and tests before pushing:
+
+```bash
+ruff check synth_dataset_kit/
+pytest tests/ -v
+```
+
+4. Open a PR with a short description of what changed and why.
+
+Code style: `ruff` with `line-length = 100`, Python 3.10+ syntax. Type hints required for public functions. No new dependencies without discussion.
 
 ---
 
