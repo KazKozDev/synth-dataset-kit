@@ -58,16 +58,19 @@ Flow: seeds or domain → generation → quality scoring → decontamination →
 ## Tech Stack
 
 - Python 3.10+
-- [Typer](https://typer.tiangolo.com/) — CLI framework
-- [Pydantic v2](https://docs.pydantic.dev/) — config and data models
-- [Rich](https://github.com/Textualize/rich) — terminal output and progress
-- [OpenAI Python SDK](https://github.com/openai/openai-python) — unified LLM client
-- [sentence-transformers](https://www.sbert.net/) *(optional)* — embedding-based decontamination
-- [Jinja2](https://jinja.palletsprojects.com/) — prompt templates
+- Typer — CLI framework
+- Pydantic v2 — config and data models
+- Rich — terminal output and progress
+- OpenAI Python SDK — unified LLM client
+- sentence-transformers *(optional)* — embedding-based decontamination
+- Jinja2 — prompt templates
 
 ## Configuration
 
-`sdk init --provider <name>` creates `sdk_config.yaml` with provider defaults. The key sections:
+`sdk init --provider <name>` creates `sdk_config.yaml` with provider defaults. All values have defaults and CLI flags override them at runtime.
+
+<details>
+<summary>Full sdk_config.yaml reference</summary>
 
 ```yaml
 llm:
@@ -109,7 +112,7 @@ export:
   include_quality_report: true
 ```
 
-The config file is optional — all values have defaults and CLI flags override them at runtime.
+</details>
 
 ## Quick Start
 
