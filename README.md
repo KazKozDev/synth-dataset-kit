@@ -1,50 +1,88 @@
 # Synth Dataset Kit
 
-CLI tool for generating high-quality synthetic datasets for LLM fine-tuning.
+Generate high-quality synthetic datasets for LLM fine-tuning from seed examples or domain descriptions.
 
 ![CI](https://github.com/KazKozDev/synth-dataset-kit/actions/workflows/ci.yml/badge.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-0.1.0-orange)
 
+## What it does
+
+Takes 20-50 hand-crafted seed examples (or just a domain description) and expands them into hundreds or thousands of quality-filtered training examples. Connects to any OpenAI-compatible LLM (Ollama, OpenAI, Anthropic, vLLM) to generate, score with an LLM judge, check for benchmark contamination, and export in the format your trainer expects.
+
+**Why?** Manual annotation costs $0.02-$5+ per example at scale. Naive synthetic pipelines (Self-Instruct, Alpaca-style) produce noise — duplicates, hallucinations, low-quality samples. This toolkit makes dataset quality measurable and controllable before you start training.
+
 ## Highlights
 
-- Amplifies 20–50 seed examples into thousands of training examples
-- Generates datasets from a domain description using topic trees
-- LLM-as-judge quality scoring with toxicity and PII checks
-- Benchmark decontamination against MMLU, GSM8K, HumanEval, ARC, HellaSwag
-- Exports to JSONL, Alpaca, ShareGPT, ChatML, and HuggingFace formats
+- **Seed expansion** — amplify 20-50 examples into thousands with controlled variation across topics, personas, and difficulty levels
+- **Domain generation** — create datasets from scratch using hierarchical topic trees
+- **Quality scoring** — LLM-as-judge (1-10 scale) + rule-based checks for toxicity, PII, duplicates, placeholders
+- **Decontamination** — detect overlap with MMLU, GSM8K, HumanEval, ARC, HellaSwag via exact match, n-gram, and embedding similarity
+- **Multiple formats** — export to JSONL, Alpaca, ShareGPT, ChatML, HuggingFace
+- **HTML reports** — diversity metrics, topic coverage heatmaps, score distributions, contamination evidence
+- **Provider-agnostic** — works with Ollama (local, free), OpenAI, Anthropic, vLLM, any OpenAI-compatible API
 
-<!-- TODO: Add demo GIF or screenshot -->
+## Quick Start
 
-## Overview
+```bash
+pip install synth-dataset-kit
 
-`synth-dataset-kit` turns a small set of hand-crafted examples — or just a domain name — into a large, quality-filtered fine-tuning dataset. It connects to any OpenAI-compatible LLM endpoint (Ollama, OpenAI, Anthropic, vLLM) to generate examples, scores them with an LLM judge, filters out benchmark contamination, and exports to the format your trainer expects.
+# With embedding-based decontamination
+pip install "synth-dataset-kit[decontamination]"
+```
 
-Aimed at ML engineers who need training data fast, without the cost of manual annotation at scale.
+### With Ollama (local, no API key)
 
-## Motivation
+```bash
+ollama serve
+ollama pull llama3.1:8b
 
-High-quality data is expensive, and cheap data is unreliable.
+sdk init --provider ollama
+sdk run --seeds examples/customer_support_seeds.jsonl --num 500 --format alpaca
+```
 
-Manual annotation ranges from ~$0.02–$0.20 per example for simple tasks to $1–5+ for RLHF or expert review (e.g., Scale AI, Labelbox), making a 10k dataset cost anywhere from hundreds to $50k+.
+### With OpenAI
 
-Synthetic pipelines (Self-Instruct, Alpaca-style) reduce cost but often introduce noise — duplicates, low-quality samples, and hallucinations — without proper filtering.
+```bash
+sdk init --provider openai
+export OPENAI_API_KEY=sk-...
+sdk run --domain "customer support chatbot" --num 1000 --format sharegpt
+```
 
-In practice, more data ≠ better performance. Noisy datasets degrade fine-tuning.
+## Usage
 
-This project exists to fix that: to make dataset quality measurable, controllable, and reproducible before training.
+```bash
+# Check LLM connectivity
+sdk health
 
-## Features
+# Generate from seed examples
+sdk generate --seeds my_seeds.jsonl --num 200
 
-- `sdk generate --seeds` — expand seed JSONL into a larger dataset
-- `sdk generate --domain` — generate from scratch given a domain description
-- `sdk audit` — score dataset quality, flag toxicity, PII, and duplicates
-- `sdk export` — convert to Alpaca, ShareGPT, ChatML, or HuggingFace format
-- `sdk run` — full pipeline in one command: generate → audit → filter → export
-- `sdk health` — verify LLM endpoint connectivity before starting a run
-- YAML-based config with per-provider defaults (Ollama, OpenAI, Anthropic, vLLM)
-- HTML quality report with diversity metrics, topic coverage, and score distribution
+# Generate from domain description
+sdk generate --domain "medical Q&A for primary care" --num 500
+
+# Audit an existing dataset
+sdk audit ./data/dataset.jsonl
+
+# Export with quality filter
+sdk export ./data/dataset.jsonl --format alpaca --min-quality 8.0
+
+# Full pipeline: generate -> audit -> filter -> export
+sdk run --seeds my_seeds.jsonl --num 1000 --format jsonl --min-quality 7.0
+```
+
+### Seed file format
+
+JSONL with any of these formats (auto-detected):
+
+```jsonl
+{"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
+{"instruction": "...", "output": "..."}
+{"conversations": [{"from": "human", "value": "..."}, {"from": "gpt", "value": "..."}]}
+```
+
+See `examples/` for working seed files. The dataset generated from `customer_support_seeds.jsonl` is published on HuggingFace: [KazKozDev/synth-customer-support-expanded-R](https://huggingface.co/datasets/KazKozDev/synth-customer-support-expanded-R).
 
 ## Architecture
 
@@ -52,28 +90,18 @@ This project exists to fix that: to make dataset quality measurable, controllabl
 CLI (sdk)
   └── DatasetEngine
         ├── Generators
-        │     ├── SeedExpander     — analyzes seeds, generates variations
-        │     └── TopicTreeGenerator — builds topic tree from domain, generates per-node
-        ├── QualityJudge           — LLM-as-judge scoring, toxicity/PII/dedup checks
-        ├── Decontaminator         — embedding/n-gram similarity vs benchmark corpora
-        └── Exporters              — JSONL, Alpaca, ShareGPT, ChatML, HuggingFace
+        │     ├── SeedExpander        — analyzes seeds, generates variations
+        │     └── TopicTreeGenerator  — builds topic tree from domain, generates per-node
+        ├── QualityJudge              — LLM-as-judge scoring + toxicity/PII/dedup checks
+        ├── Decontaminator            — n-gram/embedding similarity vs benchmark corpora
+        └── Exporters                 — JSONL, Alpaca, ShareGPT, ChatML, HuggingFace
 ```
 
-Flow: seeds or domain → generation → quality scoring → decontamination → filtered export
-
-## Tech Stack
-
-- Python 3.10+
-- Typer — CLI framework
-- Pydantic v2 — config and data models
-- Rich — terminal output and progress
-- OpenAI Python SDK — unified LLM client
-- sentence-transformers *(optional)* — embedding-based decontamination
-- Jinja2 — prompt templates
+Flow: seeds or domain &rarr; generation &rarr; quality scoring &rarr; decontamination &rarr; filtered export
 
 ## Configuration
 
-`sdk init --provider <name>` creates `sdk_config.yaml` with provider defaults. All values have defaults and CLI flags override them at runtime.
+`sdk init --provider <name>` creates `sdk_config.yaml` with provider defaults. All values have sensible defaults; CLI flags override them at runtime.
 
 <details>
 <summary>Full sdk_config.yaml reference</summary>
@@ -98,7 +126,7 @@ generation:
 
 quality:
   enabled: true
-  min_score: 7.5            # 0–10 scale; examples below this are filtered out
+  min_score: 7.5            # 0-10 scale; examples below this are filtered out
   check_toxicity: true
   check_pii: true
   check_duplicates: true
@@ -120,90 +148,33 @@ export:
 
 </details>
 
-## Quick Start
-
-```bash
-# Install
-pip install synth-dataset-kit
-
-# Or with decontamination support
-pip install "synth-dataset-kit[decontamination]"
-```
-
-**With Ollama (local, no API key needed):**
-
-```bash
-# 1. Start Ollama and pull a model
-ollama serve
-ollama pull llama3.1:8b
-
-# 2. Create config
-sdk init --provider ollama
-
-# 3. Generate from seeds
-sdk generate --seeds examples/customer_support_seeds.jsonl --num 500
-
-# 4. Or run the full pipeline in one shot
-sdk run --seeds examples/customer_support_seeds.jsonl --num 500 --format alpaca
-```
-
-**With OpenAI:**
-
-```bash
-sdk init --provider openai
-export OPENAI_API_KEY=sk-...
-sdk run --domain "customer support chatbot" --num 1000 --format sharegpt
-```
-
-## Usage
-
-```bash
-# Check connectivity
-sdk health
-
-# Generate 200 examples from seeds, output as ShareGPT
-sdk generate --seeds my_seeds.jsonl --num 200 --format sharegpt --output ./data
-
-# Generate from domain description
-sdk generate --domain "medical Q&A for primary care" --num 500
-
-# Audit an existing dataset
-sdk audit ./data/dataset.jsonl
-
-# Export with quality filter (keep only score >= 8)
-sdk export ./data/dataset.jsonl --format alpaca --min-quality 8.0
-
-# Full pipeline: generate → audit → filter → export
-sdk run --seeds my_seeds.jsonl --num 1000 --format jsonl --min-quality 7.0
-```
-
-Seed files are JSONL with OpenAI message format:
-
-```jsonl
-{"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
-```
-
-See `examples/customer_support_seeds.jsonl` for a working example. The expanded dataset generated from these seeds is published on HuggingFace: [KazKozDev/synth-customer-support-expanded-R](https://huggingface.co/datasets/KazKozDev/synth-customer-support-expanded-R).
-
 ## Project Structure
 
 ```
 synth_dataset_kit/
-  cli.py              # CLI commands (init, generate, audit, export, run, health)
-  engine.py           # DatasetEngine — main orchestrator
-  config.py           # SDKConfig + per-provider defaults
-  models.py           # Dataset, Example, QualityReport data models
-  llm_client.py       # OpenAI-compatible LLM client
-  prompts.py          # Jinja2 prompt templates
-  generators/         # SeedExpander and TopicTreeGenerator
-  quality/            # LLM-as-judge, toxicity, PII, dedup
-  decontamination/    # Benchmark overlap detection
-  exporters/          # Output format converters
-examples/
-  customer_support_seeds.jsonl
-tests/
-  test_core.py
+  cli/                 # CLI commands (Typer + Rich)
+  engine.py            # DatasetEngine — main orchestrator
+  config.py            # SDKConfig + per-provider defaults
+  models.py            # Dataset, Example, QualityReport (Pydantic)
+  llm_client.py        # OpenAI-compatible LLM client with retry/concurrency
+  prompts.py           # Jinja2 prompt templates
+  generators/          # SeedExpander, TopicTreeGenerator
+  quality/             # LLM-as-judge, toxicity, PII, dedup checks
+  decontamination/     # Benchmark overlap detection (exact, n-gram, embedding)
+  exporters/           # JSONL, Alpaca, ShareGPT, ChatML, HuggingFace, HTML reports
+examples/              # Seed files for demos (customer support, coding tutor, FAQ, IT helpdesk)
+tests/                 # Test suite (13 test modules)
 ```
+
+## Tech Stack
+
+- Python 3.10+
+- Typer + Rich — CLI and terminal UI
+- Pydantic v2 — config and data models
+- OpenAI Python SDK — unified LLM client for all providers
+- Jinja2 — prompt templates
+- NumPy — numerical operations
+- sentence-transformers *(optional)* — embedding-based decontamination
 
 ## Testing
 
@@ -214,26 +185,21 @@ pytest tests/ -v
 
 ## Contributing
 
-1. Fork the repo and create a branch: `git checkout -b feat/your-feature`
-2. Make your changes. Keep PRs focused — one feature or fix per PR.
-3. Run the linter and tests before pushing:
+1. Fork and branch: `git checkout -b feat/your-feature`
+2. Make changes — one feature or fix per PR
+3. Lint and test:
 
 ```bash
 ruff check synth_dataset_kit/
 pytest tests/ -v
 ```
 
-4. Open a PR with a short description of what changed and why.
+4. Open a PR with a short description of what changed and why
 
-Code style: `ruff` with `line-length = 100`, Python 3.10+ syntax. Type hints required for public functions. No new dependencies without discussion.
+Code style: `ruff` with `line-length = 100`, Python 3.10+ syntax, type hints on public functions.
 
 ---
 
-MIT - see LICENSE
+MIT License
 
-If you like this project, please give it a star ⭐
-
-For questions, feedback, or support, reach out to:
-
-[LinkedIn](https://www.linkedin.com/in/kazkozdev/)
-[Email](mailto:kazkozdev@gmail.com)
+[LinkedIn](https://www.linkedin.com/in/kazkozdev/) &middot; [Email](mailto:kazkozdev@gmail.com)
