@@ -1,0 +1,138 @@
+{
+  "name": "expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref",
+  "size": 10,
+  "generator": "synth-dataset-kit",
+  "config_snapshot": {
+    "benchmark_sources": {
+      "mmlu": "fallback_signatures",
+      "gsm8k": "fallback_signatures",
+      "humaneval": "fallback_signatures",
+      "arc": "fallback_signatures",
+      "hellaswag": "fallback_signatures"
+    },
+    "benchmark_sample_counts": {
+      "mmlu": 10,
+      "gsm8k": 10,
+      "humaneval": 10,
+      "arc": 8,
+      "hellaswag": 5
+    },
+    "benchmark_load_errors": {
+      "mmlu": "benchmark dataset loading disabled",
+      "gsm8k": "benchmark dataset loading disabled",
+      "humaneval": "benchmark dataset loading disabled",
+      "arc": "benchmark dataset loading disabled",
+      "hellaswag": "benchmark dataset loading disabled"
+    }
+  },
+  "quality_summary": {
+    "dataset_name": "expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref",
+    "total_examples": 10,
+    "passed_examples": 10,
+    "failed_examples": 0,
+    "avg_quality_score": 8.1,
+    "score_distribution": {
+      "9-10": 1,
+      "8-9": 9
+    },
+    "avg_user_length": 45.4,
+    "avg_assistant_length": 158.2,
+    "diversity_score": 0.9875,
+    "self_bleu_proxy": 0.0125,
+    "lexical_diversity": 0.4109,
+    "embedding_diversity_score": null,
+    "diversity_method": "ngram_jaccard",
+    "difficulty_distribution": {
+      "hard": 10
+    },
+    "topic_coverage": {
+      "unknown": 10
+    },
+    "topic_heatmap": {
+      "unknown": {
+        "easy": 0,
+        "medium": 0,
+        "hard": 10
+      }
+    },
+    "seed_cluster_distribution": {},
+    "generated_cluster_distribution": {
+      "unknown": 10
+    },
+    "distribution_divergence": 0.5,
+    "distribution_match_score": 0.0,
+    "semantic_cluster_target_distribution": {},
+    "semantic_cluster_generated_distribution": {},
+    "semantic_coverage_score": 0.0,
+    "semantic_coverage_gaps": {},
+    "graph_coverage_score": 0.0,
+    "graph_frontier_clusters": [],
+    "underrepresented_clusters": {},
+    "rebalancing_history": [],
+    "final_distribution_status": {},
+    "issue_counts": {
+      "Authorization hold timeframe (3–7 business days) is generally plausible but varies by bank/merchant; could note variability.": 1,
+      "Implies the assistant can directly check order status without clarifying it needs access to the company’s order system; could be framed more conditionally.": 1,
+      "Assumes the assistant can directly access fulfillment records; in many contexts it should clarify limitations or direct the user to the appropriate support channel/portal.": 1,
+      "Suggests whitelisting 'our sending domain' without specifying what it is; may require a concrete domain or instructions.": 1,
+      "The 12–24 hour handoff lag is plausible but not universally true; could be framed more cautiously (e.g., 'can sometimes lag').": 1,
+      "Asks for last 4 digits of the card; while common, it’s still payment-related and may be unnecessary for initial troubleshooting": 1,
+      "States pending authorizations may drop off in 3–7 business days; timeframe varies by bank/merchant and could be broader": 1,
+      "Claims it can verify order/warehouse status, which may be beyond an assistant’s actual system access; should clarify limitations or direct to official support channel if needed": 1,
+      "Mentions 'credit review' for net terms without confirming the company’s actual process; could be speculative though plausible": 1,
+      "Cannot actually confirm shipment status without access to order systems; should more explicitly state limitations and suggest contacting support/order tracking page if the assistant cannot look it up.": 1,
+      "Could add concrete next steps if no shipment after preorder release date (e.g., check spam, account order status, contact merchant, bank guidance on authorizations).": 1,
+      "Pending charge timing varies by issuer/merchant; 3–7 (up to 10) business days is plausible but not universally true (can be longer in some cases).": 1,
+      "Assistant implies it can directly check order status and escalate to a warehouse team, which may be an overclaim without access/context.": 1,
+      "Does not explicitly answer the carrier/service level request yet (though it appropriately asks for identifiers first).": 1,
+      "Requests account email and partial order IDs; while reasonable for verification, it should more clearly minimize sensitive data and offer safer alternatives (e.g., order numbers only).": 1,
+      "Claims it can 'check' fulfillment/label status without clarifying it needs access to internal systems; could be framed more conditionally.": 1,
+      "States 'bulk/B2B orders can take 3–5 business days' which may be policy-specific and not universally accurate without context.": 1,
+      "Assumes the assistant can directly look up orders and take actions (cancel/provide invoice) without clarifying it is a support agent with access; could be framed more conditionally.": 1,
+      "Bank authorization hold timeframe (3–7 business days) is plausible but varies by bank/merchant; could note variability more explicitly.": 1,
+      "Requesting last 4 digits of the card is generally low-risk but still sensitive; could avoid unless strictly necessary and mention secure channel.": 1,
+      "Asking for “sysdiagnose timestamp” is slightly vague; should specify how to capture a sysdiagnose on iOS and how to share it, or at least link/describe steps.": 1,
+      "Could ask for reproduction steps and whether the crash occurs at picker selection vs. after tapping upload, and whether it happens with non-iCloud Live Photos, to better isolate.": 1,
+      "Crash log location may vary by iOS version; guidance is generally correct but could mention that entries are named like “AppName-YYYY...” and that users may need to wait for logs to appear after a crash.": 1,
+      "Suggesting disabling “Optimize iPhone Storage” as a workaround/test is plausible but may be heavy-handed and not necessary; could mention it’s only for testing and can consume significant storage.": 1,
+      "Advice about reducing photo size via 'sharing to Files as Most Compatible' is unclear and may not reliably reduce size; could confuse users.": 1,
+      "Does not directly address the user's specific hypotheses (background task expiration vs memory spike) with targeted tests like checking Analytics crash logs for jetsam/memory, monitoring memory pressure, or testing with different file sizes/number of parts.": 1,
+      "Private Relay path/instructions are somewhat inaccurate/outdated; Private Relay is under iCloud settings but not typically phrased as 'Apple ID > iCloud > Private Relay' on all iOS 16 builds.": 1,
+      "Some suggestions are speculative or app-specific without clarifying whether the app actually uses background uploads (e.g., 'background uploads can be terminated').": 1
+    },
+    "duplicate_groups": 0,
+    "near_duplicate_examples": 0,
+    "contamination_hits": 0,
+    "contaminated_benchmarks": [],
+    "contamination_verdicts": {
+      "clean": 10
+    },
+    "contamination_methods": {},
+    "contamination_method_benchmarks": {},
+    "contamination_evidence_samples": [],
+    "benchmark_sources": {
+      "mmlu": "fallback_signatures",
+      "gsm8k": "fallback_signatures",
+      "humaneval": "fallback_signatures",
+      "arc": "fallback_signatures",
+      "hellaswag": "fallback_signatures"
+    },
+    "benchmark_sample_counts": {
+      "mmlu": 10,
+      "gsm8k": 10,
+      "humaneval": 10,
+      "arc": 8,
+      "hellaswag": 5
+    },
+    "benchmark_load_errors": {
+      "mmlu": "benchmark dataset loading disabled",
+      "gsm8k": "benchmark dataset loading disabled",
+      "humaneval": "benchmark dataset loading disabled",
+      "arc": "benchmark dataset loading disabled",
+      "hellaswag": "benchmark dataset loading disabled"
+    },
+    "audit_method": "llm_judge+rules",
+    "generation_time_seconds": 27.54155683517456
+  },
+  "eval_summary_path": "showcase/customer_support_demo/publish/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_huggingface/eval_summary.json"
+}

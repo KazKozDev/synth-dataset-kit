@@ -1,0 +1,111 @@
+{
+  "dataset_name": "expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref",
+  "examples": 10,
+  "avg_quality_score": 8.1,
+  "passed_examples": 10,
+  "failed_examples": 0,
+  "pass_rate": 1.0,
+  "lexical_diversity": 0.4109,
+  "distribution_divergence": 0.5,
+  "distribution_match_score": 0.0,
+  "semantic_coverage_score": 0.0,
+  "semantic_coverage_gaps": {},
+  "graph_coverage_score": 0.0,
+  "graph_frontier_clusters": [],
+  "underrepresented_clusters": {},
+  "contamination_hits": 0,
+  "contamination_verdicts": {
+    "clean": 10
+  },
+  "rebalancing_rounds": 0,
+  "top_issues": {
+    "Authorization hold timeframe (3–7 business days) is generally plausible but varies by bank/merchant; could note variability.": 1,
+    "Implies the assistant can directly check order status without clarifying it needs access to the company’s order system; could be framed more conditionally.": 1,
+    "Assumes the assistant can directly access fulfillment records; in many contexts it should clarify limitations or direct the user to the appropriate support channel/portal.": 1,
+    "Suggests whitelisting 'our sending domain' without specifying what it is; may require a concrete domain or instructions.": 1,
+    "The 12–24 hour handoff lag is plausible but not universally true; could be framed more cautiously (e.g., 'can sometimes lag').": 1
+  },
+  "usable_dataset_gate": {
+    "passed": true,
+    "checks": {
+      "all_examples_pass_quality_gate": true,
+      "avg_quality_at_least_7_5": true,
+      "contamination_hits_equal_zero": true,
+      "has_examples": true
+    },
+    "thresholds": {
+      "avg_quality_score_min": 7.5,
+      "contamination_hits_max": 0,
+      "failed_examples_max": 0
+    }
+  },
+  "baseline_comparison": {
+    "baseline_dataset_name": "customer_support_seeds",
+    "baseline_examples": 6,
+    "generated_examples": 10,
+    "example_delta": 4,
+    "baseline_avg_quality_score": 7.1667,
+    "generated_avg_quality_score": 8.1,
+    "avg_quality_delta": 0.9333,
+    "baseline_pass_rate": 0.5,
+    "generated_pass_rate": 1.0,
+    "pass_rate_delta": 0.5,
+    "baseline_lexical_diversity": 0.5248,
+    "generated_lexical_diversity": 0.4109,
+    "lexical_diversity_delta": -0.1139,
+    "baseline_distribution_divergence": 0.5,
+    "generated_distribution_divergence": 0.5,
+    "distribution_divergence_delta": 0.0,
+    "baseline_contamination_hits": 0,
+    "generated_contamination_hits": 0,
+    "contamination_hit_delta": 0
+  },
+  "reference_comparison": {
+    "reference_dataset_name": "customer_support_seeds",
+    "reference_examples": 6,
+    "generated_examples": 10,
+    "avg_user_length_delta": 31.7333,
+    "avg_assistant_length_delta": 60.7,
+    "diversity_score_delta": -0.0104,
+    "lexical_diversity_delta": -0.1139,
+    "style_distribution_distance": 0.7333,
+    "generated_style_distribution": {
+      "detailed": 9,
+      "empathetic": 1
+    },
+    "reference_style_distribution": {
+      "balanced": 1,
+      "procedural": 2,
+      "empathetic": 2,
+      "detailed": 1
+    },
+    "cluster_coverage_distance": 0.0,
+    "generated_cluster_distribution": {
+      "unknown": 10
+    },
+    "reference_cluster_distribution": {
+      "unknown": 6
+    },
+    "difficulty_profile_distance": 1.0,
+    "topic_overlap_ratio": 1.0,
+    "topic_novelty_ratio": 0.0,
+    "exact_overlap_ratio": 0.0,
+    "near_overlap_ratio": 0.0,
+    "semantic_overlap_ratio": null,
+    "reference_alignment_score": 65.13,
+    "reference_top_topics": [
+      "unknown"
+    ],
+    "generated_top_topics": [
+      "unknown"
+    ]
+  },
+  "distribution_validation": {
+    "status": "reference_calibrated",
+    "internal_distribution_match_score": 0.0,
+    "reference_alignment_score": 65.13,
+    "graph_coverage_score": 0.0,
+    "calibration_error": 65.13,
+    "validated_distribution_match_score": 29.31
+  }
+}

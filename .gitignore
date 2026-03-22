@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Environment
+.env
+.env.local
+
+# Config (generated per user)
+sdk_config.yaml
+
+# Cache
+.ruff_cache/
+.pytest_cache/
+.sdk_cache/
+data/cache/
+
+# Outputs
+output/
+outputs/
+data/outputs/*.log
+data/outputs/*.json
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+.coverage
+htmlcov/
+
+# Virtual env
+.venv/
+venv/
+
+# Dataset files (keep examples)
+*.jsonl
+!examples/*.jsonl
+
+# Dependency check
+requirements_check.txt
+.DS_Store
+**/.DS_Store

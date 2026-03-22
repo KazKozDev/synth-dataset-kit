@@ -1,0 +1,33 @@
+{
+  "dataset_name": "expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref",
+  "provider": "openai",
+  "model": "gpt-5.2",
+  "input": {
+    "seeds": "examples/customer_support_seeds.jsonl",
+    "domain": null,
+    "num_examples": 10,
+    "format": "jsonl",
+    "min_quality": 7.5
+  },
+  "output_dir": "./showcase/customer_support_demo",
+  "examples_retained": 10,
+  "avg_quality_score": 8.1,
+  "pass_rate": 1.0,
+  "contamination_hits": 0,
+  "runtime_seconds": 119.0,
+  "runtime_minutes": 1.98,
+  "stage_timings": {
+    "generate_seconds": 88.418,
+    "audit_seconds": 30.575,
+    "filter_seconds": 0.002,
+    "export_seconds": 0.006
+  },
+  "output_files": [
+    "showcase/customer_support_demo/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref.jsonl",
+    "showcase/customer_support_demo/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_candidates.jsonl",
+    "showcase/customer_support_demo/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_accepted.jsonl",
+    "showcase/customer_support_demo/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_quality_report.html",
+    "showcase/customer_support_demo/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_quality_report.json",
+    "showcase/customer_support_demo/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_case_study.md"
+  ]
+}

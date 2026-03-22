@@ -1,0 +1,13 @@
+{
+  "task": "customer_support_assistant",
+  "dimensions": [
+    "task_success",
+    "policy_alignment",
+    "answer_completeness",
+    "escalation_correctness",
+    "tone_and_empathy",
+    "hallucination_avoidance"
+  ],
+  "scoring_scale": "1-5",
+  "notes": "Use the same holdout set to compare the base model and fine-tuned model."
+}

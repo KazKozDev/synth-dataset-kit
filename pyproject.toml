@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "synth-dataset-kit"
+version = "0.1.0"
+description = "Generate high-quality synthetic datasets for LLM fine-tuning. Seed-to-dataset, auto-decontamination, quality reports."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Artem KK", email = "kazkozdev@gmail.com"}
+]
+keywords = ["synthetic-data", "llm", "fine-tuning", "dataset", "machine-learning"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+    "openai>=1.0.0",
+    "numpy>=1.24.0",
+    "jinja2>=3.1.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+decontamination = ["sentence-transformers>=2.2.0", "datasets>=2.14.0", "faiss-cpu>=1.8.0"]
+training = ["datasets>=2.14.0", "transformers>=4.40.0", "trl>=0.9.0"]
+publish = ["huggingface_hub>=0.30.0"]
+full = ["sentence-transformers>=2.2.0", "datasets>=2.14.0", "faiss-cpu>=1.8.0", "transformers>=4.40.0", "trl>=0.9.0", "huggingface_hub>=0.30.0"]
+dev = ["pytest>=8.0.0", "pytest-cov>=4.0.0", "ruff>=0.4.0", "black>=24.0.0"]
+
+[project.scripts]
+sdk = "synth_dataset_kit.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/KazKozDev/synth-dataset-kit"
+Repository = "https://github.com/KazKozDev/synth-dataset-kit"
+Issues = "https://github.com/KazKozDev/synth-dataset-kit/issues"
+
+[tool.setuptools.packages.find]
+include = ["synth_dataset_kit*"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+]
+ignore = [
+    "E501",   # line length handled by black
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["synth_dataset_kit"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

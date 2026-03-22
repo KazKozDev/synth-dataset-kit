@@ -1,0 +1,116 @@
+{
+  "dataset_name": "expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref",
+  "total_examples": 10,
+  "passed_examples": 10,
+  "failed_examples": 0,
+  "avg_quality_score": 8.1,
+  "score_distribution": {
+    "9-10": 1,
+    "8-9": 9
+  },
+  "avg_user_length": 45.4,
+  "avg_assistant_length": 158.2,
+  "diversity_score": 0.9875,
+  "self_bleu_proxy": 0.0125,
+  "lexical_diversity": 0.4109,
+  "embedding_diversity_score": null,
+  "diversity_method": "ngram_jaccard",
+  "difficulty_distribution": {
+    "hard": 10
+  },
+  "topic_coverage": {
+    "Order status and missing shipping confirmation": 8,
+    "Mobile app crashing during photo upload (iOS troubleshooting)": 2
+  },
+  "topic_heatmap": {
+    "Order status and missing shipping confirmation": {
+      "easy": 0,
+      "medium": 0,
+      "hard": 8
+    },
+    "Mobile app crashing during photo upload (iOS troubleshooting)": {
+      "easy": 0,
+      "medium": 0,
+      "hard": 2
+    }
+  },
+  "seed_cluster_distribution": {},
+  "generated_cluster_distribution": {
+    "order_status_and_missing_shipping_confirmation__c0__hard__detailed": 8,
+    "mobile_app_crashing_during_photo_upload_ios_troubleshooting__c1__hard__procedural": 2
+  },
+  "distribution_divergence": 0.5,
+  "distribution_match_score": 0.0,
+  "semantic_cluster_target_distribution": {},
+  "semantic_cluster_generated_distribution": {},
+  "semantic_coverage_score": 0.0,
+  "semantic_coverage_gaps": {},
+  "graph_coverage_score": 0.0,
+  "graph_frontier_clusters": [],
+  "underrepresented_clusters": {},
+  "rebalancing_history": [],
+  "final_distribution_status": {},
+  "issue_counts": {
+    "Assumes the assistant can directly check order status; in many contexts it should clarify it needs access to the merchant system or direct the user to official support channels if it cannot access orders.": 1,
+    "The 3–7 business days window for pending authorizations can vary by bank/merchant; generally true but not universally reliable.": 1,
+    "Assumes the assistant can access internal fulfillment records; should clarify limitations or that it will escalate to support if it cannot directly look up orders.": 1,
+    "Suggests whitelisting 'our sending domain' without specifying what it is; could offer concrete next steps (e.g., provide domain once identified).": 1,
+    "The 12–24 hour handoff lag is plausible but not universally true; could be framed more cautiously (e.g., 'can sometimes lag').": 1,
+    "Asks for last 4 digits of the card; while common, it’s still sensitive and may be unnecessary—could prefer order number/email only.": 1,
+    "States pending authorizations may drop in 3–7 business days; this varies by bank/merchant and could be framed more cautiously.": 1,
+    "Assistant implies it can directly verify order/shipping status, which may be unrealistic without access to internal systems; could clarify limitations and direct to official support channels if needed.": 1,
+    "Could suggest checking the account order history/portal for status as an immediate self-serve step.": 1,
+    "Does not explicitly address the possibility that these are license (digital) orders where shipping/tracking may not apply; should ask whether licenses are physical or delivered electronically.": 1,
+    "Asks for ZIP/country; could also ask for full shipping address only if necessary and reiterate not to share sensitive info": 1,
+    "Cannot actually confirm shipment status without access to order systems; should more explicitly state limitations and suggest contacting support/order tracking portal if the assistant cannot access records": 1,
+    "Pending charge explanation is generally correct but could mention that some merchants charge at shipment vs at preorder and that banks vary; could advise checking with the bank if it persists beyond stated window": 1,
+    "Assistant implies it can directly check order status and escalate to a warehouse team, which may be an overclaim unless it has access to internal systems.": 1,
+    "Does not explicitly address the 24-hour SLA timing (e.g., time zones, cutoff times) beyond a generic note.": 1,
+    "Requests 'account email + last 6 characters of each order ID'—may be unnecessary and could be sensitive; should prefer order numbers only and minimize data collection.": 1,
+    "Assumes the assistant can directly check internal fulfillment/label status without clarifying access/limitations.": 1,
+    "States a specific 3–5 business day B2B processing window without context; may be inaccurate for many businesses.": 1,
+    "Assumes the assistant can directly look up orders and take actions (cancel/provide invoice) without clarifying it is a support agent with system access; could be framed conditionally.": 1,
+    "Bank authorization hold timeframe (3–7 business days) is plausible but varies by bank/merchant; could be stated more cautiously.": 1,
+    "Asking for 'approximate file size/format (HEIC/HEIF)' is somewhat imprecise for Live Photos (which are typically a paired still + MOV); could ask for whether the Live Photo video component exists/plays and whether it's HDR/ProRAW, etc.": 1,
+    "Doesn't mention checking for known iOS 17.4.1/TestFlight-specific issues or suggesting updating to latest build/iOS if available.": 1,
+    "Request for 'sysdiagnose timestamp' is slightly vague; should specify how to capture sysdiagnose and how to share it, or at least ask for a time of crash to correlate.": 1,
+    "Suggesting disabling 'Optimize iPhone Storage' as a workaround is heavy-handed and may not be necessary; better framed as a temporary diagnostic step with caveats (storage impact).": 1,
+    "Doesn't directly address the user's specific hypotheses (background task expiration vs memory spike) with targeted tests like checking Analytics crash logs for jetsam/memory, monitoring memory pressure, or testing with different file sizes/number of parts to isolate multipart behavior.": 1,
+    "Mentions 5G/LTE connectivity change but doesn't suggest forcing LTE/5G off as a concrete test.": 1,
+    "Private Relay path is slightly off/varies by iOS version and may not be relevant unless the app uses Safari/WebKit networking; could confuse users.": 1,
+    "Some suggestions are speculative or app-specific without confirming the app supports background uploads; 'background uploads can be terminated' is generally true but not always the cause.": 1
+  },
+  "duplicate_groups": 0,
+  "near_duplicate_examples": 0,
+  "contamination_hits": 0,
+  "contaminated_benchmarks": [],
+  "contamination_verdicts": {
+    "clean": 10
+  },
+  "contamination_methods": {},
+  "contamination_method_benchmarks": {},
+  "contamination_evidence_samples": [],
+  "benchmark_sources": {
+    "mmlu": "fallback_signatures",
+    "gsm8k": "fallback_signatures",
+    "humaneval": "fallback_signatures",
+    "arc": "fallback_signatures",
+    "hellaswag": "fallback_signatures"
+  },
+  "benchmark_sample_counts": {
+    "mmlu": 10,
+    "gsm8k": 10,
+    "humaneval": 10,
+    "arc": 8,
+    "hellaswag": 5
+  },
+  "benchmark_load_errors": {
+    "mmlu": "benchmark dataset loading disabled",
+    "gsm8k": "benchmark dataset loading disabled",
+    "humaneval": "benchmark dataset loading disabled",
+    "arc": "benchmark dataset loading disabled",
+    "hellaswag": "benchmark dataset loading disabled"
+  },
+  "audit_method": "llm_judge+rules",
+  "generation_time_seconds": 0.0
+}
