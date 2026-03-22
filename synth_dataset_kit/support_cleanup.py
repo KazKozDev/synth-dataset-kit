@@ -6,7 +6,6 @@ import json
 import re
 from pathlib import Path
 
-
 _ACTION_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (
         re.compile(
@@ -196,7 +195,7 @@ def curate_top_risky_generated(path: str | Path, top_n: int = 20) -> int:
     records: list[dict] = []
     risky: list[tuple[int, int]] = []
 
-    for index, line in enumerate(file_path.read_text(encoding="utf-8").splitlines()):
+    for _index, line in enumerate(file_path.read_text(encoding="utf-8").splitlines()):
         if not line.strip():
             continue
         record = json.loads(line)

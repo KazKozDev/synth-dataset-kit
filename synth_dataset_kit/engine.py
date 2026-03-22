@@ -294,7 +294,7 @@ class DatasetEngine:
 
         # Audit
         started = time.time()
-        report = self.audit(dataset)
+        self.audit(dataset)
         stage_timings["audit_seconds"] = round(time.time() - started, 3)
 
         # Filter

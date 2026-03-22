@@ -102,7 +102,7 @@ def generate_holdout_predictions(
 def evaluate_prediction_dataset(predictions: Dataset, holdout: Dataset) -> dict[str, Any]:
     """Execute evaluate prediction dataset."""
     metrics = []
-    for predicted, reference in zip(predictions.examples, holdout.examples):
+    for predicted, reference in zip(predictions.examples, holdout.examples, strict=False):
         row = _score_prediction(predicted.assistant_message, reference.assistant_message)
         row["id"] = predicted.id
         row["topic"] = reference.metadata.get("topic", "unknown")
