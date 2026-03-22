@@ -27,7 +27,10 @@ def _token_f1(prediction: str, reference: str) -> float:
         pred_counts[token] = pred_counts.get(token, 0) + 1
     for token in ref_tokens:
         ref_counts[token] = ref_counts.get(token, 0) + 1
-    overlap = sum(min(pred_counts.get(token, 0), ref_counts.get(token, 0)) for token in set(pred_counts) | set(ref_counts))
+    overlap = sum(
+        min(pred_counts.get(token, 0), ref_counts.get(token, 0))
+        for token in set(pred_counts) | set(ref_counts)
+    )
     if overlap == 0:
         return 0.0
     precision = overlap / len(pred_tokens)
@@ -67,6 +70,7 @@ def _score_prediction(prediction: str, reference: str) -> dict[str, float]:
 
 
 def holdout_dataset(path: str) -> Dataset:
+    """Execute holdout dataset."""
     return Dataset(name=Path(path).stem, examples=load_seed_file(path))
 
 
@@ -75,6 +79,7 @@ def generate_holdout_predictions(
     holdout: Dataset,
     system_prompt: str = "",
 ) -> Dataset:
+    """Execute generate holdout predictions."""
     predictions = Dataset(name=f"{holdout.name}_predictions")
     for example in holdout.examples:
         messages: list[dict[str, str]] = []
@@ -95,6 +100,7 @@ def generate_holdout_predictions(
 
 
 def evaluate_prediction_dataset(predictions: Dataset, holdout: Dataset) -> dict[str, Any]:
+    """Execute evaluate prediction dataset."""
     metrics = []
     for predicted, reference in zip(predictions.examples, holdout.examples):
         row = _score_prediction(predicted.assistant_message, reference.assistant_message)
@@ -129,6 +135,7 @@ def compare_models_on_holdout(
     finetuned_config: SDKConfig,
     holdout_path: str,
 ) -> dict[str, Any]:
+    """Execute compare models on holdout."""
     holdout = holdout_dataset(holdout_path)
     base_predictions = generate_holdout_predictions(
         LLMClient(base_config.llm),
@@ -144,7 +151,8 @@ def compare_models_on_holdout(
     finetuned_metrics = evaluate_prediction_dataset(finetuned_predictions, holdout)
     uplift = {
         "task_success_rate_delta": round(
-            float(finetuned_metrics["task_success_rate"]) - float(base_metrics["task_success_rate"]),
+            float(finetuned_metrics["task_success_rate"])
+            - float(base_metrics["task_success_rate"]),
             4,
         ),
         "pass_rate_delta": round(
@@ -156,7 +164,8 @@ def compare_models_on_holdout(
             4,
         ),
         "avg_empathy_score_delta": round(
-            float(finetuned_metrics["avg_empathy_score"]) - float(base_metrics["avg_empathy_score"]),
+            float(finetuned_metrics["avg_empathy_score"])
+            - float(base_metrics["avg_empathy_score"]),
             4,
         ),
     }
@@ -170,7 +179,10 @@ def compare_models_on_holdout(
     }
 
 
-def export_uplift_results(results: dict[str, Any], output_dir: str, name: str = "uplift") -> list[str]:
+def export_uplift_results(
+    results: dict[str, Any], output_dir: str, name: str = "uplift"
+) -> list[str]:
+    """Execute export uplift results."""
     output_dir_path = Path(output_dir)
     output_dir_path.mkdir(parents=True, exist_ok=True)
     json_path = output_dir_path / f"{name}_results.json"
@@ -280,15 +292,21 @@ def build_metric_validation_report(runs: list[dict[str, Any]]) -> dict[str, Any]
 
     return {
         "runs_analyzed": len(task_success_pairs),
-        "avg_calibration_error": round(sum(calibration_errors) / max(len(calibration_errors), 1), 4),
+        "avg_calibration_error": round(
+            sum(calibration_errors) / max(len(calibration_errors), 1), 4
+        ),
         "avg_validated_distribution_match_score": round(
             sum(validated_scores) / max(len(validated_scores), 1),
             4,
-        ) if validated_scores else 0.0,
+        )
+        if validated_scores
+        else 0.0,
         "avg_reference_alignment_score": round(
             sum(reference_alignment_scores) / max(len(reference_alignment_scores), 1),
             4,
-        ) if reference_alignment_scores else 0.0,
+        )
+        if reference_alignment_scores
+        else 0.0,
         "correlations": {
             "validated_match_vs_task_success_delta": validated_task_corr,
             "validated_match_vs_pass_rate_delta": validated_pass_corr,
@@ -328,15 +346,27 @@ def export_metric_validation_report(
         "",
         (
             "- Validated match vs task success delta: "
-            + ("n/a" if correlations.get("validated_match_vs_task_success_delta") is None else f"{float(correlations['validated_match_vs_task_success_delta']):+.4f}")
+            + (
+                "n/a"
+                if correlations.get("validated_match_vs_task_success_delta") is None
+                else f"{float(correlations['validated_match_vs_task_success_delta']):+.4f}"
+            )
         ),
         (
             "- Validated match vs pass rate delta: "
-            + ("n/a" if correlations.get("validated_match_vs_pass_rate_delta") is None else f"{float(correlations['validated_match_vs_pass_rate_delta']):+.4f}")
+            + (
+                "n/a"
+                if correlations.get("validated_match_vs_pass_rate_delta") is None
+                else f"{float(correlations['validated_match_vs_pass_rate_delta']):+.4f}"
+            )
         ),
         (
             "- Validated match vs token F1 delta: "
-            + ("n/a" if correlations.get("validated_match_vs_token_f1_delta") is None else f"{float(correlations['validated_match_vs_token_f1_delta']):+.4f}")
+            + (
+                "n/a"
+                if correlations.get("validated_match_vs_token_f1_delta") is None
+                else f"{float(correlations['validated_match_vs_token_f1_delta']):+.4f}"
+            )
         ),
         "",
         "## Run Summaries",

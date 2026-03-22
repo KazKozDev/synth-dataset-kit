@@ -173,7 +173,7 @@ Return ONLY valid JSON."""
 
 # ─── TEMPLATE REGISTRY ───────────────────────────────────────────────────────
 
-TEMPLATES = {
+TEMPLATES: dict[str, str] = {
     "analyze_seeds": ANALYZE_SEEDS_PROMPT,
     "seed_expand": SEED_EXPAND_PROMPT,
     "domain_generate": DOMAIN_GENERATE_PROMPT,

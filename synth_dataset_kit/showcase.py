@@ -7,10 +7,12 @@ from pathlib import Path
 
 
 def load_json(path: Path) -> dict:
+    """Execute load json."""
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def find_optional_json(run_summary_path: Path, suffix: str) -> dict | None:
+    """Execute find optional json."""
     for candidate in run_summary_path.parent.glob(f"*{suffix}"):
         try:
             return load_json(candidate)
@@ -20,6 +22,7 @@ def find_optional_json(run_summary_path: Path, suffix: str) -> dict | None:
 
 
 def fmt_minutes(seconds: float | int | None) -> str:
+    """Execute fmt minutes."""
     if seconds is None:
         return "n/a"
     return f"{float(seconds) / 60.0:.1f} min"
@@ -30,6 +33,7 @@ def build_showcase_markdown(
     quality_report: dict | None,
     eval_summary: dict | None,
 ) -> str:
+    """Execute build showcase markdown."""
     stage_timings = dict(run_summary.get("stage_timings", {}))
     input_cfg = dict(run_summary.get("input", {}))
     lines = [
@@ -88,6 +92,7 @@ def build_showcase_markdown(
 
 
 def render_showcase_summary(run_summary_path: Path, output_path: Path | None = None) -> Path:
+    """Execute render showcase summary."""
     run_summary = load_json(run_summary_path)
     quality_report = find_optional_json(run_summary_path, "_quality_report.json")
     eval_summary = find_optional_json(run_summary_path, "_eval_summary.json")

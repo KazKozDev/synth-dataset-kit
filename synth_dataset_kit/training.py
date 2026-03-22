@@ -10,6 +10,8 @@ from typing import Any
 
 @dataclass
 class TrainingJob:
+    """Trainingjob configuration or data structure."""
+
     dataset_path: str
     base_model: str
     output_dir: str
@@ -23,6 +25,7 @@ class TrainingJob:
 
 
 def load_jsonl_messages(dataset_path: str) -> list[dict[str, Any]]:
+    """Execute load jsonl messages."""
     rows: list[dict[str, Any]] = []
     with open(dataset_path, encoding="utf-8") as f:
         for line in f:
@@ -34,6 +37,7 @@ def load_jsonl_messages(dataset_path: str) -> list[dict[str, Any]]:
 
 
 def render_chat_example(record: dict[str, Any]) -> str:
+    """Execute render chat example."""
     messages = record.get("messages", [])
     rendered: list[str] = []
     for message in messages:
@@ -46,10 +50,13 @@ def render_chat_example(record: dict[str, Any]) -> str:
 
 
 def save_training_job(job: TrainingJob) -> list[str]:
+    """Execute save training job."""
     output_dir = Path(job.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     json_path = output_dir / "training_job.json"
-    json_path.write_text(json.dumps(asdict(job), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(asdict(job), indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
     md_path = output_dir / "training_job.md"
     md_lines = [
@@ -69,6 +76,7 @@ def save_training_job(job: TrainingJob) -> list[str]:
 
 
 def run_training_job(job: TrainingJob) -> dict[str, Any]:
+    """Execute run training job."""
     trainer = job.trainer.strip().lower()
     if trainer != "unsloth":
         raise ValueError(f"Unsupported trainer '{job.trainer}'. Only 'unsloth' is implemented.")
@@ -76,6 +84,7 @@ def run_training_job(job: TrainingJob) -> dict[str, Any]:
 
 
 def run_unsloth_finetune(job: TrainingJob) -> dict[str, Any]:
+    """Execute run unsloth finetune."""
     try:
         import torch
         from datasets import Dataset as HFDataset
@@ -89,7 +98,9 @@ def run_unsloth_finetune(job: TrainingJob) -> dict[str, Any]:
         ) from exc
 
     records = load_jsonl_messages(job.dataset_path)
-    train_texts = [{"text": render_chat_example(record)} for record in records if render_chat_example(record)]
+    train_texts = [
+        {"text": render_chat_example(record)} for record in records if render_chat_example(record)
+    ]
     if not train_texts:
         raise ValueError(f"No trainable chat examples found in {job.dataset_path}")
 
@@ -106,7 +117,15 @@ def run_unsloth_finetune(job: TrainingJob) -> dict[str, Any]:
     model = FastLanguageModel.get_peft_model(
         model,
         r=16,
-        target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ],
         lora_alpha=16,
         lora_dropout=0,
         bias="none",
@@ -151,7 +170,9 @@ def run_unsloth_finetune(job: TrainingJob) -> dict[str, Any]:
         }
     )
     metrics_path = output_dir / "finetune_metrics.json"
-    metrics_path.write_text(json.dumps(metrics, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    metrics_path.write_text(
+        json.dumps(metrics, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     return {
         "model_dir": str(final_model_dir),
         "metrics_path": str(metrics_path),

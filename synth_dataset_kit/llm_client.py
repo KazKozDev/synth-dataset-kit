@@ -73,7 +73,7 @@ class LLMClient:
             except Exception as e:
                 logger.warning(f"LLM call failed (attempt {attempt + 1}): {e}")
                 if attempt < self.config.max_retries - 1:
-                    time.sleep(2 ** attempt)
+                    time.sleep(2**attempt)
                 else:
                     raise
 
@@ -185,10 +185,7 @@ class LLMClient:
                 self._semaphore.release()
 
         with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
-            futures = [
-                pool.submit(_worker, i, msgs)
-                for i, msgs in enumerate(message_batches)
-            ]
+            futures = [pool.submit(_worker, i, msgs) for i, msgs in enumerate(message_batches)]
             for future in as_completed(futures):
                 idx, text = future.result()
                 results[idx] = text
@@ -224,10 +221,7 @@ class LLMClient:
                 self._semaphore.release()
 
         with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
-            futures = [
-                pool.submit(_worker, i, msgs)
-                for i, msgs in enumerate(message_batches)
-            ]
+            futures = [pool.submit(_worker, i, msgs) for i, msgs in enumerate(message_batches)]
             for future in as_completed(futures):
                 idx, parsed = future.result()
                 results[idx] = parsed
@@ -273,10 +267,17 @@ class LLMClient:
 
             domain_lower = domain.lower()
             preferred_groups = []
-            is_code_domain = any(token in domain_lower for token in ["code", "python", "sql", "program"])
+            is_code_domain = any(
+                token in domain_lower for token in ["code", "python", "sql", "program"]
+            )
             if is_code_domain:
-                preferred_groups.extend(["qwen2.5-coder", "deepseek-coder", "codellama", "codegemma"])
-            if any(token in domain_lower for token in ["support", "customer", "chat", "multilingual", "russian"]):
+                preferred_groups.extend(
+                    ["qwen2.5-coder", "deepseek-coder", "codellama", "codegemma"]
+                )
+            if any(
+                token in domain_lower
+                for token in ["support", "customer", "chat", "multilingual", "russian"]
+            ):
                 preferred_groups.extend(["qwen", "llama3", "mistral", "gemma"])
             if is_code_domain:
                 preferred_groups.extend(["qwen", "llama3", "mistral", "gemma"])
@@ -285,7 +286,11 @@ class LLMClient:
 
             for preferred in preferred_groups:
                 for name in names:
-                    if not is_code_domain and "coder" in name.lower() and preferred in {"qwen", "llama3", "mistral", "gemma"}:
+                    if (
+                        not is_code_domain
+                        and "coder" in name.lower()
+                        and preferred in {"qwen", "llama3", "mistral", "gemma"}
+                    ):
                         continue
                     if preferred in name.lower():
                         return name

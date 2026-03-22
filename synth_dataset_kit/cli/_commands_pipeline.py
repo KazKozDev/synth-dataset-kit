@@ -42,7 +42,9 @@ def generate(
     domain: str | None = typer.Option(None, "--domain", "-d", help="Domain description"),
     num: int = typer.Option(100, "--num", "-n", help="Number of examples to generate"),
     output: str = typer.Option("./output", "--output", "-o", help="Output directory"),
-    format: str = typer.Option("jsonl", "--format", "-f", help="Output format: jsonl, alpaca, sharegpt, chatml"),
+    format: str = typer.Option(
+        "jsonl", "--format", "-f", help="Output format: jsonl, alpaca, sharegpt, chatml"
+    ),
     config: str = typer.Option("sdk_config.yaml", "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ):
@@ -72,6 +74,7 @@ def generate(
             dataset = engine.generate_from_domain(domain, num)
 
     from synth_dataset_kit.exporters import export_dataset
+
     filepath = export_dataset(dataset, format, output)
 
     console.print(f"\n[green]✓[/green] Generated [bold]{dataset.size}[/bold] examples")
@@ -107,6 +110,7 @@ def audit(
     _display_report(report)
 
     from synth_dataset_kit.exporters import export_quality_report_html, export_quality_report_json
+
     report_path = str(Path(output) / f"{dataset.name}_quality_report.html")
     export_quality_report_html(report, report_path)
     json_report_path = str(Path(output) / f"{dataset.name}_quality_report.json")
@@ -121,8 +125,12 @@ def audit(
 @app.command(hidden=True)
 def eval(
     input_file: str = typer.Argument(..., help="Path to dataset JSONL file"),
-    baseline: str | None = typer.Option(None, "--baseline", help="Optional baseline/reference JSONL file"),
-    reference: str | None = typer.Option(None, "--reference", help="Optional reference dataset JSONL file"),
+    baseline: str | None = typer.Option(
+        None, "--baseline", help="Optional baseline/reference JSONL file"
+    ),
+    reference: str | None = typer.Option(
+        None, "--reference", help="Optional reference dataset JSONL file"
+    ),
     output: str = typer.Option("./output", "--output", "-o", help="Eval output directory"),
     config: str = typer.Option("sdk_config.yaml", "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
@@ -133,7 +141,9 @@ def eval(
     engine = DatasetEngine(cfg)
     dataset = _load_dataset_file(input_file)
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+    ) as progress:
         progress.add_task("Evaluating dataset...", total=None)
         report = engine.audit(dataset)
 
@@ -142,22 +152,31 @@ def eval(
     baseline_dataset = baseline_report = reference_dataset = reference_report = None
     if baseline:
         baseline_dataset = _load_dataset_file(baseline)
-        with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+        with Progress(
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+        ) as progress:
             progress.add_task("Evaluating baseline...", total=None)
             baseline_report = engine.audit(baseline_dataset)
         _display_baseline_comparison(dataset, report, baseline_dataset, baseline_report)
     if reference:
         reference_dataset = _load_dataset_file(reference)
-        with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+        with Progress(
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+        ) as progress:
             progress.add_task("Evaluating reference dataset...", total=None)
             reference_report = engine.audit(reference_dataset)
         _display_reference_comparison(dataset, report, reference_dataset, reference_report)
 
     from synth_dataset_kit.exporters import export_eval_summary
+
     eval_files = export_eval_summary(
-        dataset, report, output,
-        baseline_dataset=baseline_dataset, baseline_report=baseline_report,
-        reference_dataset=reference_dataset, reference_report=reference_report,
+        dataset,
+        report,
+        output,
+        baseline_dataset=baseline_dataset,
+        baseline_report=baseline_report,
+        reference_dataset=reference_dataset,
+        reference_report=reference_report,
     )
     console.print("\n[bold]Eval outputs:[/bold]")
     for filepath in eval_files:
@@ -171,7 +190,9 @@ def eval(
 def validate_match(
     generated: str = typer.Argument(..., help="Generated dataset JSONL file"),
     reference: str = typer.Argument(..., help="Reference dataset JSONL file"),
-    output: str = typer.Option("./output/validation", "--output", "-o", help="Validation output directory"),
+    output: str = typer.Option(
+        "./output/validation", "--output", "-o", help="Validation output directory"
+    ),
     config: str = typer.Option("sdk_config.yaml", "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ):
@@ -182,20 +203,30 @@ def validate_match(
     generated_dataset = _load_dataset_file(generated)
     reference_dataset = _load_dataset_file(reference)
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+    ) as progress:
         progress.add_task("Auditing generated dataset...", total=None)
         generated_report = engine.audit(generated_dataset)
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+    ) as progress:
         progress.add_task("Auditing reference dataset...", total=None)
         reference_report = engine.audit(reference_dataset)
 
     _display_report(generated_report)
-    _display_reference_comparison(generated_dataset, generated_report, reference_dataset, reference_report)
+    _display_reference_comparison(
+        generated_dataset, generated_report, reference_dataset, reference_report
+    )
 
     from synth_dataset_kit.exporters import export_eval_summary
+
     files = export_eval_summary(
-        generated_dataset, generated_report, output,
-        reference_dataset=reference_dataset, reference_report=reference_report,
+        generated_dataset,
+        generated_report,
+        output,
+        reference_dataset=reference_dataset,
+        reference_report=reference_report,
     )
     console.print("\n[bold]Validation outputs:[/bold]")
     for filepath in files:
@@ -207,8 +238,12 @@ def validate_match(
 
 @app.command(name="validate-metric", hidden=True)
 def validate_metric(
-    run_dirs: Annotated[list[str], typer.Option("--run-dir", help="Run directory with eval/uplift artifacts")],
-    output: str = typer.Option("./output/metric_validation", "--output", "-o", help="Validation report output directory"),
+    run_dirs: Annotated[
+        list[str], typer.Option("--run-dir", help="Run directory with eval/uplift artifacts")
+    ],
+    output: str = typer.Option(
+        "./output/metric_validation", "--output", "-o", help="Validation report output directory"
+    ),
 ):
     """Correlate calibrated distribution-match scores with downstream uplift across runs."""
     from synth_dataset_kit.evaluation import (
@@ -229,7 +264,14 @@ def validate_metric(
             continue
         eval_summary = json.loads(eval_candidates[0].read_text(encoding="utf-8"))
         uplift_results = json.loads(uplift_candidates[0].read_text(encoding="utf-8"))
-        runs.append({"name": path.name, "run_dir": str(path), "eval_summary": eval_summary, "uplift": uplift_results})
+        runs.append(
+            {
+                "name": path.name,
+                "run_dir": str(path),
+                "eval_summary": eval_summary,
+                "uplift": uplift_results,
+            }
+        )
 
     report = build_metric_validation_report(runs)
     files = export_metric_validation_report(report, output)
@@ -260,7 +302,15 @@ def validate_metric(
 def _artifact_base_name(path: Path) -> str:
     """Infer the dataset base name from a dataset or artifact filename."""
     stem = path.stem
-    suffixes = ["_candidates", "_accepted", "_rejected", "_quality_report", "_alpaca", "_sharegpt", "_chatml"]
+    suffixes = [
+        "_candidates",
+        "_accepted",
+        "_rejected",
+        "_quality_report",
+        "_alpaca",
+        "_sharegpt",
+        "_chatml",
+    ]
     for suffix in suffixes:
         if stem.endswith(suffix):
             return stem[: -len(suffix)]
@@ -287,7 +337,9 @@ def _resolve_artifact_group(path: Path) -> tuple[str, dict[str, Path | None]]:
         if len(groups) == 1:
             base_name = next(iter(groups))
         else:
-            base_name = max(groups, key=lambda name: max(file.stat().st_mtime for file in groups[name]))
+            base_name = max(
+                groups, key=lambda name: max(file.stat().st_mtime for file in groups[name])
+            )
         search_dir = path
 
     artifact_paths = {
@@ -304,10 +356,16 @@ def _resolve_artifact_group(path: Path) -> tuple[str, dict[str, Path | None]]:
 @app.command()
 def inspect(
     target: str = typer.Argument(..., help="Output directory or dataset/artifact file"),
-    show: str | None = typer.Option(None, "--show", help="Show artifact examples: candidates, accepted, or rejected"),
+    show: str | None = typer.Option(
+        None, "--show", help="Show artifact examples: candidates, accepted, or rejected"
+    ),
     limit: int = typer.Option(10, "--limit", min=1, help="Maximum number of examples to print"),
-    sort_by: str | None = typer.Option(None, "--sort-by", help="Sort shown/exported examples by score, topic, or reason"),
-    export_csv: str | None = typer.Option(None, "--export-csv", help="Write the selected artifact bucket to a CSV file"),
+    sort_by: str | None = typer.Option(
+        None, "--sort-by", help="Sort shown/exported examples by score, topic, or reason"
+    ),
+    export_csv: str | None = typer.Option(
+        None, "--export-csv", help="Write the selected artifact bucket to a CSV file"
+    ),
 ):
     """Inspect previously saved pipeline artifacts without rerunning generation."""
     path = Path(target)
@@ -370,7 +428,9 @@ def run(
     output: str = typer.Option("./output", "--output", "-o", help="Output directory"),
     format: str = typer.Option("jsonl", "--format", "-f", help="Output format"),
     min_quality: float = typer.Option(7.0, "--min-quality", help="Minimum quality score"),
-    showcase_summary: bool = typer.Option(False, "--showcase-summary", help="Write SHOWCASE_METRICS.md after the run"),
+    showcase_summary: bool = typer.Option(
+        False, "--showcase-summary", help="Write SHOWCASE_METRICS.md after the run"
+    ),
     config: str = typer.Option("sdk_config.yaml", "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ):
@@ -398,14 +458,26 @@ def run(
 
     pipeline_start = time.time()
 
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console) as progress:
+    with Progress(
+        SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+    ) as progress:
         progress.add_task("Running full pipeline...", total=None)
         dataset, report, output_files, stage_timings = engine.run_full_pipeline(
-            seed_file=seeds, domain=domain, num_examples=num,
-            format=format, output_dir=output, min_quality=min_quality,
+            seed_file=seeds,
+            domain=domain,
+            num_examples=num,
+            format=format,
+            output_dir=output,
+            min_quality=min_quality,
         )
     duration_seconds = time.time() - pipeline_start
-    _record_runtime_history(cfg, num_examples=num, has_seeds=bool(seeds), duration_seconds=duration_seconds, stage_timings=stage_timings)
+    _record_runtime_history(
+        cfg,
+        num_examples=num,
+        has_seeds=bool(seeds),
+        duration_seconds=duration_seconds,
+        stage_timings=stage_timings,
+    )
     from synth_dataset_kit.exporters import export_run_summary
 
     run_summary_path = export_run_summary(
@@ -413,9 +485,17 @@ def run(
             "dataset_name": dataset.name,
             "provider": cfg.llm.provider.value,
             "model": cfg.llm.model,
-            "input": {"seeds": seeds, "domain": domain, "num_examples": num, "format": format, "min_quality": min_quality},
+            "input": {
+                "seeds": seeds,
+                "domain": domain,
+                "num_examples": num,
+                "format": format,
+                "min_quality": min_quality,
+            },
             "output_dir": output,
-            "generated_examples_retained": int(dataset.config_snapshot.get("generated_examples_retained", dataset.size)),
+            "generated_examples_retained": int(
+                dataset.config_snapshot.get("generated_examples_retained", dataset.size)
+            ),
             "seed_examples_included": int(dataset.config_snapshot.get("seed_examples_included", 0)),
             "final_export_examples": dataset.size,
             "examples_retained": dataset.size,
@@ -440,7 +520,12 @@ def run(
     if stage_timings:
         stage_line = ", ".join(
             f"{label} {stage_timings[key] / 60.0:.1f}m"
-            for key, label in [("generate_seconds", "generate"), ("audit_seconds", "audit"), ("filter_seconds", "filter"), ("export_seconds", "export")]
+            for key, label in [
+                ("generate_seconds", "generate"),
+                ("audit_seconds", "audit"),
+                ("filter_seconds", "filter"),
+                ("export_seconds", "export"),
+            ]
             if key in stage_timings
         )
         if stage_line:
@@ -449,5 +534,8 @@ def run(
     console.print("\n[bold]Output files:[/bold]")
     for f in output_files:
         console.print(f"  [cyan]{f}[/cyan]")
-    if any(name.endswith(("_candidates.jsonl", "_accepted.jsonl", "_rejected.jsonl")) for name in output_files):
+    if any(
+        name.endswith(("_candidates.jsonl", "_accepted.jsonl", "_rejected.jsonl"))
+        for name in output_files
+    ):
         console.print("\n  Intermediate artifacts saved for inspection.")

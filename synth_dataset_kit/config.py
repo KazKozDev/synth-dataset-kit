@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 
 
 class LLMProvider(str, Enum):
+    """Llmprovider configuration or data structure."""
+
     OLLAMA = "ollama"
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
@@ -47,6 +49,8 @@ PROVIDER_DEFAULTS: dict[str, dict[str, Any]] = {
 
 
 class LLMConfig(BaseModel):
+    """Llmconfig configuration or data structure."""
+
     provider: LLMProvider = LLMProvider.OLLAMA
     api_base: str = "http://localhost:11434/v1"
     api_key: str = "ollama"
@@ -60,18 +64,16 @@ class LLMConfig(BaseModel):
 
 
 class GenerationConfig(BaseModel):
+    """Generationconfig configuration or data structure."""
+
     num_examples: int = 100
     strategy: str = "auto"  # auto | seed_expand | topic_tree | domain_description
     domain: str = ""  # e.g., "customer_support", "coding", "medical"
     language: str = "en"
     system_prompt: str = ""
     seed_file: str = ""  # Path to seed examples (JSONL)
-    personas: list[str] = Field(
-        default_factory=lambda: ["beginner", "expert", "skeptic"]
-    )
-    difficulty_levels: list[str] = Field(
-        default_factory=lambda: ["easy", "medium", "hard"]
-    )
+    personas: list[str] = Field(default_factory=lambda: ["beginner", "expert", "skeptic"])
+    difficulty_levels: list[str] = Field(default_factory=lambda: ["easy", "medium", "hard"])
     batch_size: int = 5
     divergence_threshold: float = 0.15
     focus_top_k_clusters: int = 2
@@ -85,6 +87,8 @@ class GenerationConfig(BaseModel):
 
 
 class QualityConfig(BaseModel):
+    """Qualityconfig configuration or data structure."""
+
     enabled: bool = True
     min_score: float = 7.5
     judge_model: str = ""  # Empty = use same model as generation
@@ -95,6 +99,8 @@ class QualityConfig(BaseModel):
 
 
 class DecontaminationConfig(BaseModel):
+    """Decontaminationconfig configuration or data structure."""
+
     enabled: bool = True
     benchmarks: list[str] = Field(
         default_factory=lambda: ["mmlu", "gsm8k", "humaneval", "arc", "hellaswag"]
@@ -114,6 +120,8 @@ class DecontaminationConfig(BaseModel):
 
 
 class ExportConfig(BaseModel):
+    """Exportconfig configuration or data structure."""
+
     format: str = "jsonl"  # jsonl | alpaca | chatml | openai | sharegpt | huggingface
     output_dir: str = "./output"
     include_metadata: bool = False

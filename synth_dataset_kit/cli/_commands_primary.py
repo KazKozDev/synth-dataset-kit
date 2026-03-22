@@ -40,7 +40,11 @@ def _run_demo_path(
     cfg.to_yaml(config)
 
     seed_path = Path(seeds) if seeds else None
-    if seed_path is None and cfg.generation.domain.lower() in {"customer support", "customer_support", "support"}:
+    if seed_path is None and cfg.generation.domain.lower() in {
+        "customer support",
+        "customer_support",
+        "support",
+    }:
         seed_path = _default_demo_seed_path()
     if seed_path is not None and not seed_path.exists():
         console.print(f"[red]Error:[/red] Seed file not found: {seed_path}")
@@ -123,13 +127,17 @@ def init(
 
 @app.command()
 def create(
-    demo: bool = typer.Option(False, "--demo", help="Run the built-in fast demo path without prompts"),
+    demo: bool = typer.Option(
+        False, "--demo", help="Run the built-in fast demo path without prompts"
+    ),
     seeds: str | None = typer.Option(None, "--seeds", "-s", help="Optional seed JSONL file"),
     domain: str | None = typer.Option(None, "--domain", "-d", help="Use case/domain"),
     num: int | None = typer.Option(None, "--num", "-n", help="Number of examples to generate"),
     format: str | None = typer.Option(None, "--format", "-f", help="Output format"),
     output: str | None = typer.Option(None, "--output", "-o", help="Output directory"),
-    showcase_summary: bool = typer.Option(False, "--showcase-summary", help="Write SHOWCASE_METRICS.md after the run"),
+    showcase_summary: bool = typer.Option(
+        False, "--showcase-summary", help="Write SHOWCASE_METRICS.md after the run"
+    ),
     config: str = typer.Option("sdk_config.yaml", "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ):
@@ -192,7 +200,9 @@ def create(
         raise typer.Exit(1)
 
     if not selected_output:
-        output_label = Path(selected_seeds).stem if selected_seeds else _slugify_label(selected_domain)
+        output_label = (
+            Path(selected_seeds).stem if selected_seeds else _slugify_label(selected_domain)
+        )
         selected_output = f"./output/{output_label}_dataset"
 
     cfg.generation.domain = selected_domain
@@ -201,7 +211,9 @@ def create(
     cfg.export.output_dir = selected_output
     cfg.to_yaml(config)
     eta_low, eta_high, eta_basis, eta_stages = _estimate_create_duration_minutes(
-        cfg, num_examples=selected_num, has_seeds=bool(selected_seeds),
+        cfg,
+        num_examples=selected_num,
+        has_seeds=bool(selected_seeds),
     )
 
     console.print(
@@ -247,12 +259,20 @@ def create(
 
 @app.command(hidden=True)
 def go(
-    seeds: str | None = typer.Option(None, "--seeds", "-s", help="Seed JSONL file; defaults to built-in demo seeds"),
-    domain: str | None = typer.Option(None, "--domain", "-d", help="Use case/domain when generating without seeds"),
+    seeds: str | None = typer.Option(
+        None, "--seeds", "-s", help="Seed JSONL file; defaults to built-in demo seeds"
+    ),
+    domain: str | None = typer.Option(
+        None, "--domain", "-d", help="Use case/domain when generating without seeds"
+    ),
     num: int = typer.Option(100, "--num", "-n", help="Number of examples to generate"),
     format: str = typer.Option("jsonl", "--format", "-f", help="Output format"),
-    output: str = typer.Option("./output/zero_to_dataset", "--output", "-o", help="Output directory"),
-    showcase_summary: bool = typer.Option(False, "--showcase-summary", help="Write SHOWCASE_METRICS.md after the run"),
+    output: str = typer.Option(
+        "./output/zero_to_dataset", "--output", "-o", help="Output directory"
+    ),
+    showcase_summary: bool = typer.Option(
+        False, "--showcase-summary", help="Write SHOWCASE_METRICS.md after the run"
+    ),
     config: str = typer.Option("sdk_config.yaml", "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ):

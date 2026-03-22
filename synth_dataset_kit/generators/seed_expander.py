@@ -166,9 +166,7 @@ class SeedExpander:
         embedding_cluster_ids = self._embedding_cluster_assignments(seeds)
         cluster_seed_texts: dict[str, list[str]] = {}
         topic_hints = [
-            str(topic).strip()
-            for topic in analysis.get("topics_covered", [])
-            if str(topic).strip()
+            str(topic).strip() for topic in analysis.get("topics_covered", []) if str(topic).strip()
         ]
         clusters: dict[str, dict[str, object]] = {}
         for index, seed in enumerate(seeds):
@@ -221,7 +219,9 @@ class SeedExpander:
             remaining -= target_examples
 
         if ordered_clusters and remaining > 0:
-            ordered_clusters[0]["target_examples"] = int(ordered_clusters[0]["target_examples"]) + remaining
+            ordered_clusters[0]["target_examples"] = (
+                int(ordered_clusters[0]["target_examples"]) + remaining
+            )
 
         semantic_graph = self._build_semantic_coverage_graph(
             ordered_clusters,
@@ -231,8 +231,11 @@ class SeedExpander:
         return {
             "clusters": ordered_clusters,
             "cluster_count": len(ordered_clusters),
-            "embedding_clustering": any(cluster_id > 0 for cluster_id in embedding_cluster_ids) or len(set(embedding_cluster_ids)) > 1,
-            "embedding_model": self.seed_embedding_model_name if len(set(embedding_cluster_ids)) > 1 else None,
+            "embedding_clustering": any(cluster_id > 0 for cluster_id in embedding_cluster_ids)
+            or len(set(embedding_cluster_ids)) > 1,
+            "embedding_model": self.seed_embedding_model_name
+            if len(set(embedding_cluster_ids)) > 1
+            else None,
             "semantic_graph": semantic_graph,
         }
 
@@ -432,7 +435,9 @@ class SeedExpander:
         """Create a coverage-balanced generation plan from analysis output."""
         distribution = analysis.get("seed_distribution_profile", {})
         clusters = list(distribution.get("clusters", [])) if isinstance(distribution, dict) else []
-        semantic_graph = dict(distribution.get("semantic_graph", {})) if isinstance(distribution, dict) else {}
+        semantic_graph = (
+            dict(distribution.get("semantic_graph", {})) if isinstance(distribution, dict) else {}
+        )
         accepted_counts = self._accepted_counts_by_cluster(accepted_examples or [])
         focus_ids = {str(cluster_id) for cluster_id in (focus_cluster_ids or []) if cluster_id}
         if clusters:
@@ -449,7 +454,9 @@ class SeedExpander:
             plans: list[dict[str, str]] = []
             for cluster in prioritized_clusters:
                 cluster_id = str(cluster.get("cluster_id", "general__medium__concise"))
-                topic = str(cluster.get("topic", analysis.get("domain", self.config.domain or "general")))
+                topic = str(
+                    cluster.get("topic", analysis.get("domain", self.config.domain or "general"))
+                )
                 style = str(cluster.get("style", "concise"))
                 difficulty = str(cluster.get("difficulty", cluster.get("complexity", "medium")))
                 allocation = max(1, allocations.get(cluster_id, 0))
@@ -514,14 +521,12 @@ class SeedExpander:
         for cluster in clusters:
             cluster_id = str(cluster.get("cluster_id", "unknown"))
             semantic_cluster = str(cluster.get("semantic_cluster", "0"))
-            target_counts[semantic_cluster] = (
-                target_counts.get(semantic_cluster, 0)
-                + int(cluster.get("target_examples", 0))
+            target_counts[semantic_cluster] = target_counts.get(semantic_cluster, 0) + int(
+                cluster.get("target_examples", 0)
             )
-            generated_counts[semantic_cluster] = (
-                generated_counts.get(semantic_cluster, 0)
-                + accepted_counts.get(cluster_id, 0)
-            )
+            generated_counts[semantic_cluster] = generated_counts.get(
+                semantic_cluster, 0
+            ) + accepted_counts.get(cluster_id, 0)
         gaps: dict[str, int] = {}
         for semantic_cluster in sorted(set(target_counts) | set(generated_counts)):
             target = target_counts.get(semantic_cluster, 0)
@@ -545,9 +550,7 @@ class SeedExpander:
         )
         semantic_mode = any("semantic_cluster" in cluster for cluster in clusters)
         graph_neighbors = (
-            dict(semantic_graph.get("neighbors", {}))
-            if isinstance(semantic_graph, dict)
-            else {}
+            dict(semantic_graph.get("neighbors", {})) if isinstance(semantic_graph, dict) else {}
         )
         seed_counts = [int(cluster.get("seed_count", 1)) for cluster in clusters]
         median_seed_count = sorted(seed_counts)[len(seed_counts) // 2] if seed_counts else 1
@@ -558,9 +561,7 @@ class SeedExpander:
         saturation_threshold = float(getattr(self.config, "saturation_threshold", 1.05))
         long_tail_boost = float(getattr(self.config, "long_tail_boost", 0.35))
         semantic_focus_top_k = max(1, int(getattr(self.config, "semantic_focus_top_k", 3)))
-        distance_allocator_weight = float(
-            getattr(self.config, "distance_allocator_weight", 0.6)
-        )
+        distance_allocator_weight = float(getattr(self.config, "distance_allocator_weight", 0.6))
 
         ranked: list[dict[str, object]] = []
         for cluster in clusters:
@@ -579,17 +580,14 @@ class SeedExpander:
             saturation_ratio = accepted / max(target, 1)
             long_tail = int(cluster.get("seed_count", 1)) <= max(1, median_seed_count)
             long_tail_score = long_tail_boost if long_tail and semantic_mode else 0.0
-            semantic_gap_ratio = (
-                semantic_gap / max(semantic_target, 1)
-                if semantic_mode
-                else 0.0
-            )
+            semantic_gap_ratio = semantic_gap / max(semantic_target, 1) if semantic_mode else 0.0
             graph_frontier_score = 0.0
             for neighbor in graph_neighbors.get(cluster_id, []):
                 neighbor_id = str(neighbor.get("cluster_id", "unknown"))
                 neighbor_cluster = next(
                     (
-                        item for item in clusters
+                        item
+                        for item in clusters
                         if str(item.get("cluster_id", "unknown")) == neighbor_id
                     ),
                     None,
@@ -669,8 +667,7 @@ class SeedExpander:
 
         allocations = {cluster_id: 0 for cluster_id in remaining_gaps}
         cluster_lookup = {
-            str(cluster.get("cluster_id", "unknown")): cluster
-            for cluster in prioritized_clusters
+            str(cluster.get("cluster_id", "unknown")): cluster for cluster in prioritized_clusters
         }
 
         for _ in range(base_budget):
@@ -685,10 +682,7 @@ class SeedExpander:
                 long_tail_score = float(cluster.get("_priority_score", 0.0)) - float(gap)
                 current_fill = allocations[cluster_id] / target
                 marginal_utility = (
-                    float(gap)
-                    + graph_score
-                    + (long_tail_score * 0.15)
-                    - current_fill
+                    float(gap) + graph_score + (long_tail_score * 0.15) - current_fill
                 )
                 if marginal_utility > best_score:
                     best_score = marginal_utility
@@ -714,13 +708,10 @@ class SeedExpander:
         if not clusters:
             return 0.0
         graph_neighbors = (
-            dict(semantic_graph.get("neighbors", {}))
-            if isinstance(semantic_graph, dict)
-            else {}
+            dict(semantic_graph.get("neighbors", {})) if isinstance(semantic_graph, dict) else {}
         )
         cluster_lookup = {
-            str(cluster.get("cluster_id", "unknown")): cluster
-            for cluster in clusters
+            str(cluster.get("cluster_id", "unknown")): cluster for cluster in clusters
         }
         weighted_total = 0.0
         weighted_covered = 0.0
@@ -768,9 +759,7 @@ class SeedExpander:
         if not cluster_id:
             return list(seeds)
         selected = [
-            seed
-            for seed in seeds
-            if str(seed.metadata.get("seed_cluster_id")) == str(cluster_id)
+            seed for seed in seeds if str(seed.metadata.get("seed_cluster_id")) == str(cluster_id)
         ]
         return selected or list(seeds)
 
@@ -805,7 +794,10 @@ class SeedExpander:
             batch_messages: list[list[dict[str, str]]] = []
 
             for _ in range(concurrent_slots):
-                if generated + len(batch_stages) * self.config.batch_size >= target + self.config.batch_size:
+                if (
+                    generated + len(batch_stages) * self.config.batch_size
+                    >= target + self.config.batch_size
+                ):
                     break  # enough prompts queued already
                 stage = plan[plan_index % len(plan)]
                 plan_index += 1
@@ -818,7 +810,10 @@ class SeedExpander:
                 cluster_seeds = self._select_seeds_for_cluster(seeds, cluster_id)
                 seed_pool = cluster_seeds or seeds
                 sample_seeds = random.sample(seed_pool, min(3, len(seed_pool)))
-                remaining = min(self.config.batch_size, target - generated - len(batch_stages) * self.config.batch_size)
+                remaining = min(
+                    self.config.batch_size,
+                    target - generated - len(batch_stages) * self.config.batch_size,
+                )
                 if remaining <= 0:
                     break
 
@@ -891,7 +886,9 @@ class SeedExpander:
                                 "difficulty": difficulty,
                                 "style": style,
                                 "cluster_id": cluster_id or "general__medium__concise",
-                                "analysis_domain": analysis.get("domain", self.config.domain or "general"),
+                                "analysis_domain": analysis.get(
+                                    "domain", self.config.domain or "general"
+                                ),
                             },
                         )
                         candidates.append(example)
@@ -909,7 +906,9 @@ class SeedExpander:
         """Summarize current cluster gaps and divergence against the seed target profile."""
         distribution = analysis.get("seed_distribution_profile", {})
         clusters = list(distribution.get("clusters", [])) if isinstance(distribution, dict) else []
-        semantic_graph = dict(distribution.get("semantic_graph", {})) if isinstance(distribution, dict) else {}
+        semantic_graph = (
+            dict(distribution.get("semantic_graph", {})) if isinstance(distribution, dict) else {}
+        )
         accepted_counts = self._accepted_counts_by_cluster(accepted_examples)
         target_counts = {
             str(cluster.get("cluster_id", "unknown")): int(cluster.get("target_examples", 0))
@@ -1005,10 +1004,7 @@ class SeedExpander:
         existing_examples: list[Example] | None = None,
     ) -> list[Example]:
         """Remove exact duplicates against seeds and previously accepted candidates."""
-        seen_pairs = {
-            _normalize_pair(seed.user_message, seed.assistant_message)
-            for seed in seeds
-        }
+        seen_pairs = {_normalize_pair(seed.user_message, seed.assistant_message) for seed in seeds}
         for example in existing_examples or []:
             seen_pairs.add(_normalize_pair(example.user_message, example.assistant_message))
         unique_candidates: list[Example] = []
@@ -1159,7 +1155,9 @@ class SeedExpander:
                     "distribution_divergence": distribution_status["distribution_divergence"],
                     "top_cluster_gaps": list(distribution_status["gaps"].items())[:5],
                     "semantic_coverage_score": distribution_status["semantic_coverage_score"],
-                    "top_semantic_gaps": list(distribution_status["semantic_coverage_gaps"].items())[:5],
+                    "top_semantic_gaps": list(
+                        distribution_status["semantic_coverage_gaps"].items()
+                    )[:5],
                     "focus_cluster_ids": list(focus_cluster_ids or []),
                 }
             )
@@ -1168,7 +1166,10 @@ class SeedExpander:
                 or distribution_status["prioritized_cluster_ids"]
             )
             if rebalancing_strategy == "soft" and prioritized:
-                focus_cluster_ids = prioritized[:focus_top_k_clusters] + prioritized[focus_top_k_clusters:focus_top_k_clusters + 1]
+                focus_cluster_ids = (
+                    prioritized[:focus_top_k_clusters]
+                    + prioritized[focus_top_k_clusters : focus_top_k_clusters + 1]
+                )
             else:
                 focus_cluster_ids = prioritized[:focus_top_k_clusters] or None
 

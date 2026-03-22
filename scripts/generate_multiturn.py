@@ -150,9 +150,15 @@ def main() -> None:
     parser.add_argument("--input", required=True, help="Input single-turn JSONL file")
     parser.add_argument("--output", required=True, help="Output multi-turn JSONL file")
     parser.add_argument("--config", default="sdk_config.yaml", help="SDK config path")
-    parser.add_argument("--num", type=int, default=100, help="Number of multi-turn examples to generate")
-    parser.add_argument("--min-turns", type=int, default=2, help="Min extra turn pairs to add (default 2)")
-    parser.add_argument("--max-turns", type=int, default=3, help="Max extra turn pairs to add (default 3)")
+    parser.add_argument(
+        "--num", type=int, default=100, help="Number of multi-turn examples to generate"
+    )
+    parser.add_argument(
+        "--min-turns", type=int, default=2, help="Min extra turn pairs to add (default 2)"
+    )
+    parser.add_argument(
+        "--max-turns", type=int, default=3, help="Max extra turn pairs to add (default 3)"
+    )
     parser.add_argument("--seed", type=int, default=42, help="Random seed for sampling")
     args = parser.parse_args()
 
@@ -187,7 +193,7 @@ def main() -> None:
     # Summary stats
     turn_counts = [r["metadata"]["num_turns"] for r in results]
     if turn_counts:
-        logger.info(f"  Avg turns per conversation: {sum(turn_counts)/len(turn_counts):.1f}")
+        logger.info(f"  Avg turns per conversation: {sum(turn_counts) / len(turn_counts):.1f}")
         logger.info(f"  Turn distribution: {sorted(set(turn_counts))}")
 
     save_jsonl(results, args.output)

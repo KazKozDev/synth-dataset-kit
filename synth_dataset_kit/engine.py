@@ -90,10 +90,7 @@ class DatasetEngine:
 
         elapsed = time.time() - start
         dataset.config_snapshot = self.config.model_dump()
-        logger.info(
-            f"Generated {dataset.size} examples from {len(seeds)} seeds "
-            f"in {elapsed:.1f}s"
-        )
+        logger.info(f"Generated {dataset.size} examples from {len(seeds)} seeds in {elapsed:.1f}s")
 
         return dataset
 
@@ -115,9 +112,7 @@ class DatasetEngine:
 
         elapsed = time.time() - start
         dataset.config_snapshot = self.config.model_dump()
-        logger.info(
-            f"Generated {dataset.size} examples for '{domain}' in {elapsed:.1f}s"
-        )
+        logger.info(f"Generated {dataset.size} examples for '{domain}' in {elapsed:.1f}s")
 
         return dataset
 
@@ -204,13 +199,15 @@ class DatasetEngine:
             )
             dataset = decontaminator.check_dataset(dataset)
             dataset.config_snapshot["benchmark_sources"] = dict(decontaminator.benchmark_sources)
-            dataset.config_snapshot["benchmark_sample_counts"] = dict(decontaminator.benchmark_sample_counts)
-            dataset.config_snapshot["benchmark_load_errors"] = dict(decontaminator.benchmark_load_errors)
+            dataset.config_snapshot["benchmark_sample_counts"] = dict(
+                decontaminator.benchmark_sample_counts
+            )
+            dataset.config_snapshot["benchmark_load_errors"] = dict(
+                decontaminator.benchmark_load_errors
+            )
 
         # Generate report
-        judge = QualityJudge(
-            self.client, self.config.quality, self.config.generation.system_prompt
-        )
+        judge = QualityJudge(self.client, self.config.quality, self.config.generation.system_prompt)
         report = judge.generate_report(dataset)
         report.generation_time_seconds = time.time() - start
 
@@ -236,7 +233,11 @@ class DatasetEngine:
         """
         fmt = format or self.config.export.format
         out_dir = output_dir or self.config.export.output_dir
-        meta = include_metadata if include_metadata is not None else self.config.export.include_metadata
+        meta = (
+            include_metadata
+            if include_metadata is not None
+            else self.config.export.include_metadata
+        )
         if fmt in {"jsonl", "openai"} and dataset.config_snapshot.get("seed_examples_included"):
             meta = True
 
@@ -300,14 +301,10 @@ class DatasetEngine:
         min_q = min_quality or self.config.quality.min_score
         started = time.time()
         clean_dataset = dataset.remove_contaminated().filter_by_quality(min_q)
-        logger.info(
-            f"After filtering: {clean_dataset.size}/{dataset.size} examples retained"
-        )
+        logger.info(f"After filtering: {clean_dataset.size}/{dataset.size} examples retained")
 
         # Re-generate report for clean dataset
-        judge = QualityJudge(
-            self.client, self.config.quality, self.config.generation.system_prompt
-        )
+        judge = QualityJudge(self.client, self.config.quality, self.config.generation.system_prompt)
         clean_report = judge.generate_report(clean_dataset)
         stage_timings["filter_seconds"] = round(time.time() - started, 3)
 

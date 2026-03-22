@@ -11,12 +11,16 @@ from pydantic import BaseModel, Field
 
 
 class Role(str, Enum):
+    """Role configuration or data structure."""
+
     SYSTEM = "system"
     USER = "user"
     ASSISTANT = "assistant"
 
 
 class Message(BaseModel):
+    """Message configuration or data structure."""
+
     role: Role
     content: str
 
@@ -33,6 +37,7 @@ class Example(BaseModel):
 
     @property
     def user_message(self) -> str:
+        """Execute user message."""
         for m in self.messages:
             if m.role == Role.USER:
                 return m.content
@@ -40,6 +45,7 @@ class Example(BaseModel):
 
     @property
     def assistant_message(self) -> str:
+        """Execute assistant message."""
         for m in self.messages:
             if m.role == Role.ASSISTANT:
                 return m.content
@@ -51,9 +57,7 @@ class Dataset(BaseModel):
 
     name: str = "synthetic_dataset"
     version: str = "1.0"
-    created_at: str = Field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     generator: str = "synth-dataset-kit"
     config_snapshot: dict[str, Any] = Field(default_factory=dict)
     examples: list[Example] = Field(default_factory=list)
@@ -61,9 +65,11 @@ class Dataset(BaseModel):
 
     @property
     def size(self) -> int:
+        """Execute size."""
         return len(self.examples)
 
     def add(self, example: Example) -> None:
+        """Execute add."""
         self.examples.append(example)
 
     def filter_by_quality(self, min_score: float) -> Dataset:

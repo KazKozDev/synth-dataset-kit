@@ -105,6 +105,43 @@ sdk inspect ./showcase/customer_support_demo
 
 The LLM provider is selected in `sdk_config.yaml`. For local-first usage, use `ollama`. Otherwise point the tool at `openai`, `anthropic`, `vllm`, or another OpenAI-compatible API.
 
+## Configuration (`sdk_config.yaml`)
+
+The `sdk_config.yaml` file allows you to configure generation, quality, and decontamination settings. It is automatically created when you run `sdk init`.
+
+### LLM Providers
+The SDK supports concurrent request generation to speed up dataset expansion. Adjust `concurrent_requests` (default `4`) based on your API rate limits.
+
+**OpenAI (or compatible)**
+```yaml
+llm:
+  provider: openai
+  api_base: https://api.openai.com/v1
+  api_key: 'sk-...'
+  model: gpt-4o-mini
+  concurrent_requests: 10
+```
+
+**Anthropic**
+```yaml
+llm:
+  provider: anthropic
+  api_base: https://api.anthropic.com/v1
+  api_key: 'sk-ant-...'
+  model: claude-3-5-sonnet-20241022
+  concurrent_requests: 5
+```
+
+**Ollama (Local)**
+```yaml
+llm:
+  provider: ollama
+  api_base: http://localhost:11434/v1
+  api_key: 'ollama'
+  model: llama3.1
+  concurrent_requests: 2
+```
+
 ## Usage
 
 Main guided flow:

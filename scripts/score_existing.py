@@ -136,7 +136,9 @@ def main() -> None:
     # Load already-scored index for resume support
     scored_index = load_scored_index(args.output) if args.skip_scored else {}
     if scored_index:
-        logger.info(f"Resume mode: {len(scored_index)} already-scored examples found in {args.output}")
+        logger.info(
+            f"Resume mode: {len(scored_index)} already-scored examples found in {args.output}"
+        )
 
     # Open output in append mode if resuming, write mode otherwise
     out_path = Path(args.output)
@@ -162,7 +164,9 @@ def main() -> None:
                 if key in scored_index:
                     example.quality_score = scored_index[key]
                     if write_mode == "w":
-                        out_f.write(json.dumps(_example_to_record(example), ensure_ascii=False) + "\n")
+                        out_f.write(
+                            json.dumps(_example_to_record(example), ensure_ascii=False) + "\n"
+                        )
                     skipped += 1
                     continue
 
@@ -191,19 +195,20 @@ def main() -> None:
         logger.info(
             f"  Min: {min(all_scores):.2f}, "
             f"Max: {max(all_scores):.2f}, "
-            f"Avg: {sum(all_scores)/len(all_scores):.2f}"
+            f"Avg: {sum(all_scores) / len(all_scores):.2f}"
         )
         if args.min_score is not None:
             passing = [s for s in all_scores if s >= args.min_score]
             logger.info(
                 f"  Passing (>= {args.min_score}): "
-                f"{len(passing)}/{len(all_scores)} ({100*len(passing)/len(all_scores):.1f}%)"
+                f"{len(passing)}/{len(all_scores)} ({100 * len(passing) / len(all_scores):.1f}%)"
             )
         from collections import Counter
+
         buckets = Counter(int(s) for s in all_scores if s is not None)
         logger.info("  Score distribution:")
         for bucket in sorted(buckets):
-            logger.info(f"    {bucket}-{bucket+1}: {buckets[bucket]}")
+            logger.info(f"    {bucket}-{bucket + 1}: {buckets[bucket]}")
 
     logger.info(f"  Output: {args.output}")
 

@@ -58,9 +58,7 @@ def publish_huggingface_bundle(
     """Upload a prepared dataset bundle to the Hugging Face Hub."""
     resolved_token = resolve_hf_token(token)
     if not resolved_token:
-        raise RuntimeError(
-            "Missing Hugging Face token. Set `HF_TOKEN` or pass `--token`."
-        )
+        raise RuntimeError("Missing Hugging Face token. Set `HF_TOKEN` or pass `--token`.")
 
     try:
         from huggingface_hub import HfApi

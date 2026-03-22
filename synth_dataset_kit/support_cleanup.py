@@ -110,7 +110,10 @@ def targeted_support_answer_review(text: str) -> str:
         (re.compile(r"\bI(?:'m| am) going to\b", re.IGNORECASE), "The next step is to"),
         (re.compile(r"\bI(?:'ll| will) check\b", re.IGNORECASE), "Support should check"),
         (re.compile(r"\bI(?:'ll| will) pull\b", re.IGNORECASE), "Support should review"),
-        (re.compile(r"\bI(?:'ll| will) investigate\b", re.IGNORECASE), "Support should investigate"),
+        (
+            re.compile(r"\bI(?:'ll| will) investigate\b", re.IGNORECASE),
+            "Support should investigate",
+        ),
         (re.compile(r"\bI(?:'ll| will) verify\b", re.IGNORECASE), "Support should verify"),
         (re.compile(r"\bI can try to\b", re.IGNORECASE), "Support can try to"),
         (re.compile(r"\bI can help\b", re.IGNORECASE), "Support should help"),

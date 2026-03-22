@@ -104,7 +104,9 @@ def build_seed_file(output_path: str) -> str:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate examples for underrepresented support topics")
+    parser = argparse.ArgumentParser(
+        description="Generate examples for underrepresented support topics"
+    )
     parser.add_argument(
         "--seed-file",
         default=None,
@@ -138,6 +140,7 @@ def main() -> None:
 
     # Quick topic summary
     from collections import Counter
+
     topics = Counter(e.metadata.get("topic", "unknown") for e in dataset.examples)
     logger.info("\nTopic distribution:")
     for topic, count in topics.most_common(15):

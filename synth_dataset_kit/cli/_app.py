@@ -103,7 +103,9 @@ def _save_runtime_history(entries: list[dict[str, object]]) -> None:
     """Persist the last 200 runtime history entries."""
     path = _runtime_history_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(entries[-200:], indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(entries[-200:], indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def _record_runtime_history(
@@ -124,8 +126,7 @@ def _record_runtime_history(
             "has_seeds": has_seeds,
             "duration_seconds": round(duration_seconds, 2),
             "stage_timings": {
-                key: round(float(value), 3)
-                for key, value in (stage_timings or {}).items()
+                key: round(float(value), 3) for key, value in (stage_timings or {}).items()
             },
             "updated_at": int(time.time()),
         }

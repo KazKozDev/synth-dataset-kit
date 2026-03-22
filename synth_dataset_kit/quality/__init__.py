@@ -106,7 +106,7 @@ class QualityJudge:
         # Score distribution buckets
         distribution = Counter()
         for s in scores:
-            bucket = f"{int(s)}-{int(s)+1}"
+            bucket = f"{int(s)}-{int(s) + 1}"
             distribution[bucket] += 1
 
         # Length stats
@@ -137,8 +137,15 @@ class QualityJudge:
             for issue in e.metadata.get("quality_issues", []):
                 issue_counts[issue] += 1
 
-        seed_cluster_distribution, generated_cluster_distribution, distribution_divergence, underrepresented_clusters = self._distribution_alignment(dataset)
-        final_distribution_status = dict(dataset.config_snapshot.get("final_distribution_status", {}))
+        (
+            seed_cluster_distribution,
+            generated_cluster_distribution,
+            distribution_divergence,
+            underrepresented_clusters,
+        ) = self._distribution_alignment(dataset)
+        final_distribution_status = dict(
+            dataset.config_snapshot.get("final_distribution_status", {})
+        )
 
         duplicate_groups, near_duplicate_examples = self._duplicate_stats(dataset)
 
@@ -182,20 +189,34 @@ class QualityJudge:
             self_bleu_proxy=self_bleu_proxy,
             lexical_diversity=lexical_diversity,
             embedding_diversity_score=embedding_diversity,
-            diversity_method="embedding_cosine" if embedding_diversity is not None else "ngram_jaccard",
+            diversity_method="embedding_cosine"
+            if embedding_diversity is not None
+            else "ngram_jaccard",
             difficulty_distribution=dict(difficulty_counts),
             topic_coverage=dict(topic_counts.most_common(20)),
             topic_heatmap=topic_heatmap,
             seed_cluster_distribution=seed_cluster_distribution,
             generated_cluster_distribution=generated_cluster_distribution,
             distribution_divergence=distribution_divergence,
-            distribution_match_score=float(final_distribution_status.get("distribution_match_score", 0.0)),
-            semantic_cluster_target_distribution=dict(final_distribution_status.get("semantic_cluster_target_distribution", {})),
-            semantic_cluster_generated_distribution=dict(final_distribution_status.get("semantic_cluster_generated_distribution", {})),
-            semantic_coverage_score=float(final_distribution_status.get("semantic_coverage_score", 0.0)),
-            semantic_coverage_gaps=dict(final_distribution_status.get("semantic_coverage_gaps", {})),
+            distribution_match_score=float(
+                final_distribution_status.get("distribution_match_score", 0.0)
+            ),
+            semantic_cluster_target_distribution=dict(
+                final_distribution_status.get("semantic_cluster_target_distribution", {})
+            ),
+            semantic_cluster_generated_distribution=dict(
+                final_distribution_status.get("semantic_cluster_generated_distribution", {})
+            ),
+            semantic_coverage_score=float(
+                final_distribution_status.get("semantic_coverage_score", 0.0)
+            ),
+            semantic_coverage_gaps=dict(
+                final_distribution_status.get("semantic_coverage_gaps", {})
+            ),
             graph_coverage_score=float(final_distribution_status.get("graph_coverage_score", 0.0)),
-            graph_frontier_clusters=list(final_distribution_status.get("graph_frontier_clusters", [])),
+            graph_frontier_clusters=list(
+                final_distribution_status.get("graph_frontier_clusters", [])
+            ),
             underrepresented_clusters=underrepresented_clusters,
             rebalancing_history=list(dataset.config_snapshot.get("rebalancing_history", [])),
             final_distribution_status=final_distribution_status,
@@ -212,7 +233,9 @@ class QualityJudge:
             },
             contamination_evidence_samples=contamination_evidence_samples,
             benchmark_sources=dict(dataset.config_snapshot.get("benchmark_sources", {})),
-            benchmark_sample_counts=dict(dataset.config_snapshot.get("benchmark_sample_counts", {})),
+            benchmark_sample_counts=dict(
+                dataset.config_snapshot.get("benchmark_sample_counts", {})
+            ),
             benchmark_load_errors=dict(dataset.config_snapshot.get("benchmark_load_errors", {})),
             audit_method="llm_judge+rules",
         )
@@ -310,7 +333,11 @@ class QualityJudge:
         except ImportError:
             return None
 
-        texts = [example.assistant_message for example in dataset.examples if example.assistant_message.strip()]
+        texts = [
+            example.assistant_message
+            for example in dataset.examples
+            if example.assistant_message.strip()
+        ]
         if len(texts) < 2:
             return 1.0
 

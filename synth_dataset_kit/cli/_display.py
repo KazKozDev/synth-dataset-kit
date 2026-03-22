@@ -21,19 +21,32 @@ def _display_report(report) -> None:
     table.add_column("Metric", style="cyan")
     table.add_column("Value", justify="right")
 
-    quality_color = "green" if report.avg_quality_score >= 7 else "yellow" if report.avg_quality_score >= 5 else "red"
+    quality_color = (
+        "green"
+        if report.avg_quality_score >= 7
+        else "yellow"
+        if report.avg_quality_score >= 5
+        else "red"
+    )
 
     table.add_row("Total Examples", str(report.total_examples))
     table.add_row("Passed", f"[green]{report.passed_examples}[/green]")
     table.add_row("Failed", f"[red]{report.failed_examples}[/red]")
-    table.add_row("Avg Quality", f"[{quality_color}]{report.avg_quality_score:.1f}[/{quality_color}]")
+    table.add_row(
+        "Avg Quality", f"[{quality_color}]{report.avg_quality_score:.1f}[/{quality_color}]"
+    )
     table.add_row("Diversity", f"{report.diversity_score:.2f}")
     table.add_row("Avg User Length", f"{report.avg_user_length:.0f} words")
     table.add_row("Avg Response Length", f"{report.avg_assistant_length:.0f} words")
     table.add_row("Near Duplicates", str(report.near_duplicate_examples))
     table.add_row("Lexical Diversity", f"{report.lexical_diversity:.2f}")
     table.add_row("Self-BLEU Proxy", f"{report.self_bleu_proxy:.2f}")
-    table.add_row("Embedding Diversity", "n/a" if report.embedding_diversity_score is None else f"{report.embedding_diversity_score:.2f}")
+    table.add_row(
+        "Embedding Diversity",
+        "n/a"
+        if report.embedding_diversity_score is None
+        else f"{report.embedding_diversity_score:.2f}",
+    )
 
     if report.difficulty_distribution:
         table.add_row(
@@ -145,7 +158,10 @@ def _distribution_distance(left: dict[str, int], right: dict[str, int]) -> float
     if not keys:
         return 0.0
     return round(
-        sum(abs((left.get(key, 0) / left_total) - (right.get(key, 0) / right_total)) for key in keys) / 2,
+        sum(
+            abs((left.get(key, 0) / left_total) - (right.get(key, 0) / right_total)) for key in keys
+        )
+        / 2,
         4,
     )
 
@@ -170,7 +186,11 @@ def _dataset_cluster_distribution(dataset: Dataset) -> dict[str, int]:
     """Get cluster-id distribution from dataset metadata."""
     counts: Counter[str] = Counter()
     for example in dataset.examples:
-        cluster_id = str(example.metadata.get("cluster_id") or example.metadata.get("seed_cluster_id") or "unknown")
+        cluster_id = str(
+            example.metadata.get("cluster_id")
+            or example.metadata.get("seed_cluster_id")
+            or "unknown"
+        )
         counts[cluster_id] += 1
     return dict(counts)
 
@@ -212,7 +232,9 @@ def _near_pair_overlap_ratio(dataset: Dataset, reference_dataset: Dataset) -> fl
     """Fraction of generated examples with n-gram Jaccard >= 0.75 to a reference."""
     if not dataset.examples:
         return 0.0
-    reference_ngrams = [_ngram_set(example.assistant_message) for example in reference_dataset.examples]
+    reference_ngrams = [
+        _ngram_set(example.assistant_message) for example in reference_dataset.examples
+    ]
     matches = 0
     for example in dataset.examples:
         example_ngrams = _ngram_set(example.assistant_message)
@@ -220,7 +242,9 @@ def _near_pair_overlap_ratio(dataset: Dataset, reference_dataset: Dataset) -> fl
         for candidate in reference_ngrams:
             if not candidate:
                 continue
-            best = max(best, len(example_ngrams & candidate) / max(len(example_ngrams | candidate), 1))
+            best = max(
+                best, len(example_ngrams & candidate) / max(len(example_ngrams | candidate), 1)
+            )
         if best >= 0.75:
             matches += 1
     return matches / len(dataset.examples)
@@ -238,8 +262,16 @@ def _semantic_overlap_ratio(
     except ImportError:
         return None
 
-    generated_texts = [example.assistant_message.strip() for example in dataset.examples if example.assistant_message.strip()]
-    reference_texts = [example.assistant_message.strip() for example in reference_dataset.examples if example.assistant_message.strip()]
+    generated_texts = [
+        example.assistant_message.strip()
+        for example in dataset.examples
+        if example.assistant_message.strip()
+    ]
+    reference_texts = [
+        example.assistant_message.strip()
+        for example in reference_dataset.examples
+        if example.assistant_message.strip()
+    ]
     if not generated_texts or not reference_texts:
         return 0.0
 
@@ -331,10 +363,19 @@ def _display_reference_comparison(dataset, report, reference_dataset, reference_
     )
 
     table.add_row("Reference", reference_dataset.name)
-    table.add_row("User Length Delta", f"{report.avg_user_length - reference_report.avg_user_length:+.2f}")
-    table.add_row("Response Length Delta", f"{report.avg_assistant_length - reference_report.avg_assistant_length:+.2f}")
-    table.add_row("Diversity Delta", f"{report.diversity_score - reference_report.diversity_score:+.4f}")
-    table.add_row("Lexical Delta", f"{report.lexical_diversity - reference_report.lexical_diversity:+.4f}")
+    table.add_row(
+        "User Length Delta", f"{report.avg_user_length - reference_report.avg_user_length:+.2f}"
+    )
+    table.add_row(
+        "Response Length Delta",
+        f"{report.avg_assistant_length - reference_report.avg_assistant_length:+.2f}",
+    )
+    table.add_row(
+        "Diversity Delta", f"{report.diversity_score - reference_report.diversity_score:+.4f}"
+    )
+    table.add_row(
+        "Lexical Delta", f"{report.lexical_diversity - reference_report.lexical_diversity:+.4f}"
+    )
     table.add_row("Style Distance", f"{style_distance:.4f}")
     table.add_row("Cluster Distance", f"{generated_cluster_distance:.4f}")
     table.add_row("Difficulty Distance", f"{difficulty_distance:.4f}")
@@ -342,7 +383,9 @@ def _display_reference_comparison(dataset, report, reference_dataset, reference_
     table.add_row("Topic Novelty", f"{topic_novelty:.2%}")
     table.add_row("Exact Overlap", f"{exact_overlap:.2%}")
     table.add_row("Near Overlap", f"{near_overlap:.2%}")
-    table.add_row("Semantic Overlap", "n/a" if semantic_overlap is None else f"{semantic_overlap:.2%}")
+    table.add_row(
+        "Semantic Overlap", "n/a" if semantic_overlap is None else f"{semantic_overlap:.2%}"
+    )
     table.add_row("Alignment Score", f"{alignment_score:.2f}/100")
     console.print(table)
 
@@ -458,7 +501,9 @@ def _display_artifact_examples(examples: list[Example], artifact_name: str, limi
         console.print(f"\n[bold]{artifact_name.title()}:[/bold] none")
         return
 
-    console.print(f"\n[bold]{artifact_name.title()}[/bold] (showing up to {min(limit, len(examples))})")
+    console.print(
+        f"\n[bold]{artifact_name.title()}[/bold] (showing up to {min(limit, len(examples))})"
+    )
 
     for index, example in enumerate(examples[:limit], start=1):
         preview = _artifact_example_preview(example)
@@ -488,7 +533,8 @@ def _display_artifact_examples(examples: list[Example], artifact_name: str, limi
             )
         if preview["decontamination_methods"]:
             meta_parts.append(
-                "decon_methods=" + ", ".join(str(method) for method in preview["decontamination_methods"])
+                "decon_methods="
+                + ", ".join(str(method) for method in preview["decontamination_methods"])
             )
 
         if meta_parts:
@@ -542,8 +588,12 @@ def _export_artifact_csv(examples: list[Example], output_path: str) -> str:
                     "persona": preview["persona"],
                     "difficulty": preview["difficulty"],
                     "rejection_reasons": " | ".join(str(x) for x in preview["rejection_reasons"]),
-                    "decontamination_flags": " | ".join(str(x) for x in preview["decontamination_flags"]),
-                    "decontamination_methods": " | ".join(str(x) for x in preview["decontamination_methods"]),
+                    "decontamination_flags": " | ".join(
+                        str(x) for x in preview["decontamination_flags"]
+                    ),
+                    "decontamination_methods": " | ".join(
+                        str(x) for x in preview["decontamination_methods"]
+                    ),
                     "decontamination_evidence_summary": " | ".join(
                         str(x) for x in preview["decontamination_evidence_summary"]
                     ),

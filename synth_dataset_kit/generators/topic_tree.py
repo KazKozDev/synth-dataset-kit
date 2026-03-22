@@ -36,17 +36,14 @@ class TopicTreeGenerator:
         if isinstance(result, dict) and "branches" in result:
             total_topics = sum(len(b.get("leaves", [])) for b in result["branches"])
             logger.info(
-                f"Topic tree built: {len(result['branches'])} branches, "
-                f"{total_topics} leaf topics"
+                f"Topic tree built: {len(result['branches'])} branches, {total_topics} leaf topics"
             )
             return result
 
         # Fallback
         return {
             "root": domain,
-            "branches": [
-                {"name": domain, "leaves": [f"{domain} basics", f"{domain} advanced"]}
-            ],
+            "branches": [{"name": domain, "leaves": [f"{domain} basics", f"{domain} advanced"]}],
         }
 
     def flatten_topics(self, tree: dict) -> list[str]:
@@ -69,9 +66,7 @@ class TopicTreeGenerator:
         personas = self.config.personas
         difficulties = self.config.difficulty_levels
 
-        logger.info(
-            f"Generating {target} examples across {len(topics)} topics for '{domain}'"
-        )
+        logger.info(f"Generating {target} examples across {len(topics)} topics for '{domain}'")
 
         # Distribute examples evenly across topics
         examples_per_topic = max(1, target // max(len(topics), 1))
