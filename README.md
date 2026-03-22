@@ -1,221 +1,160 @@
-# Synth Dataset Kit
+# synth-dataset-kit
 
-Turn `20-50` real examples into a reviewed fine-tuning dataset, proof bundle, and publish bundle.
+CLI tool for generating high-quality synthetic datasets for LLM fine-tuning.
+
+![CI](https://github.com/KazKozDev/synth-dataset-kit/actions/workflows/ci.yml/badge.svg)
 
 ## Highlights
 
-- Seed set to dataset fast
-- Reviewed outputs by default
-- Real proof artifacts checked in
-- Publish-ready Hugging Face bundle
-- Local-first or API-backed providers
+- Amplifies 20–50 seed examples into thousands of training examples
+- Generates datasets from a domain description using topic trees
+- LLM-as-judge quality scoring with toxicity and PII checks
+- Benchmark decontamination against MMLU, GSM8K, HumanEval, ARC, HellaSwag
+- Exports to JSONL, Alpaca, ShareGPT, ChatML, and HuggingFace formats
 
-## Demo
-
-Canonical customer-support showcase:
-
-- Metrics: [showcase/customer_support_demo/SHOWCASE_METRICS.md](./showcase/customer_support_demo/SHOWCASE_METRICS.md)
-- Proof: [showcase/customer_support_demo/proof/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_proof/proof_summary.md](./showcase/customer_support_demo/proof/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_proof/proof_summary.md)
-- Publish bundle: [showcase/customer_support_demo/publish/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_huggingface/README.md](./showcase/customer_support_demo/publish/expanded_e_commerce_and_saas_customer_support_orders_shipping_billing_ref_huggingface/README.md)
-
-Checked-in run snapshot from March 21, 2026:
-
-- `openai / gpt-5.2`
-- `6` customer-support seed examples -> `10` retained examples
-- `1.98 min` total runtime
-- `8.1` average quality score
-- `0` contamination hits
+<!-- TODO: Add demo GIF or screenshot -->
 
 ## Overview
 
-Provides a CLI-first synthetic dataset tool for one narrow wedge: expanding your own small customer-support seed set into a reviewed dataset. Instead of making you wire a pipeline framework, it focuses on a direct flow: generate from seeds, audit quality, keep proof artifacts, and produce a publishable bundle. The repository already includes a real canonical showcase run, proof bundle, and Hugging Face-style export.
+`synth-dataset-kit` turns a small set of hand-crafted examples — or just a domain name — into a large, quality-filtered fine-tuning dataset. It connects to any OpenAI-compatible LLM endpoint (Ollama, OpenAI, Anthropic, vLLM) to generate examples, scores them with an LLM judge, filters out benchmark contamination, and exports to the format your trainer expects.
 
-## What You Can Use It For
-
-If you arrive at this repository with a real problem, the practical use cases are simple:
-
-- You have a small set of your own examples and need more data in the same style
-- You want a dataset, not just raw generated text
-- You want quality checks before using the result for fine-tuning
-- You want proof artifacts and publish-ready outputs next to the run
-
-In plain terms: this tool helps you turn a small set of your own data into a larger reviewed dataset you can actually use.
-
-## First Time Here?
-
-- Run `sdk init`
-- Try `sdk create --demo`
-- Bring your own seed file and run `sdk create`
-- Inspect the result with `sdk inspect`
+Aimed at ML engineers who need training data fast, without the cost of manual annotation at scale.
 
 ## Motivation
 
-Most competing tools feel like frameworks, pipeline kits, or research artifacts. That makes them flexible, but slow to start and hard to trust for a single practical job. This project is built for the opposite experience: bring a small set of your own examples, generate a larger reviewed dataset from them, and keep the quality report and proof artifacts next to the run. The goal is a usable tool, not a constructor.
+Supervised fine-tuning requires labeled data, but collecting thousands of high-quality examples manually is expensive and slow. Existing synthetic data tools either require cloud APIs or produce low-quality outputs with no quality controls. `synth-dataset-kit` works with local models (Ollama, vLLM), integrates quality scoring and decontamination into the same pipeline, and gives you a clean dataset with a single command.
 
 ## Features
 
-- Accepts seed examples in JSONL and expands them into a larger dataset
-- Supports `ollama`, `openai`, `anthropic`, `vllm`, and OpenAI-compatible APIs
-- Scores outputs with an LLM judge and rule-based checks
-- Checks contamination against configured benchmark signatures
-- Writes `run_summary.json`, quality reports, and stage timings for every run
-- Builds proof bundles with `proof_summary`, fine-tune script, and eval script templates
-- Exports Hugging Face-style publish bundles with dataset card and metadata
+- `sdk generate --seeds` — expand seed JSONL into a larger dataset
+- `sdk generate --domain` — generate from scratch given a domain description
+- `sdk audit` — score dataset quality, flag toxicity, PII, and duplicates
+- `sdk export` — convert to Alpaca, ShareGPT, ChatML, or HuggingFace format
+- `sdk run` — full pipeline in one command: generate → audit → filter → export
+- `sdk health` — verify LLM endpoint connectivity before starting a run
+- YAML-based config with per-provider defaults (Ollama, OpenAI, Anthropic, vLLM)
+- HTML quality report with diversity metrics, topic coverage, and score distribution
 
 ## Architecture
 
-Main components:
+```
+CLI (sdk)
+  └── DatasetEngine
+        ├── Generators
+        │     ├── SeedExpander     — analyzes seeds, generates variations
+        │     └── TopicTreeGenerator — builds topic tree from domain, generates per-node
+        ├── QualityJudge           — LLM-as-judge scoring, toxicity/PII/dedup checks
+        ├── Decontaminator         — embedding/n-gram similarity vs benchmark corpora
+        └── Exporters              — JSONL, Alpaca, ShareGPT, ChatML, HuggingFace
+```
 
-- `synth_dataset_kit/cli.py` - user-facing commands and runtime/reporting flow
-- `synth_dataset_kit/engine.py` - orchestration for generate, audit, filter, and export
-- `synth_dataset_kit/generators/seed_expander.py` - seed-to-dataset expansion logic
-- `synth_dataset_kit/quality/` - scoring and report generation
-- `synth_dataset_kit/decontamination/` - benchmark overlap checks
-- `synth_dataset_kit/exporters/` - dataset, proof, and publish bundle writers
+Flow: seeds or domain → generation → quality scoring → decontamination → filtered export
 
-Flow:
+## Tech Stack
 
-`seed examples -> generation -> audit -> filter -> run summary -> proof/publish artifacts`
+- Python 3.10+
+- [Typer](https://typer.tiangolo.com/) — CLI framework
+- [Pydantic v2](https://docs.pydantic.dev/) — config and data models
+- [Rich](https://github.com/Textualize/rich) — terminal output and progress
+- [OpenAI Python SDK](https://github.com/openai/openai-python) — unified LLM client
+- [sentence-transformers](https://www.sbert.net/) *(optional)* — embedding-based decontamination
+- [Jinja2](https://jinja.palletsprojects.com/) — prompt templates
 
 ## Quick Start
 
-1. Install the package:
+```bash
+# Install
+pip install synth-dataset-kit
+
+# Or with decontamination support
+pip install "synth-dataset-kit[decontamination]"
+```
+
+**With Ollama (local, no API key needed):**
 
 ```bash
-pip install synth-dataset-kit[decontamination]
+# 1. Start Ollama and pull a model
+ollama serve
+ollama pull llama3.1:8b
+
+# 2. Create config
+sdk init --provider ollama
+
+# 3. Generate from seeds
+sdk generate --seeds examples/customer_support_seeds.jsonl --num 500
+
+# 4. Or run the full pipeline in one shot
+sdk run --seeds examples/customer_support_seeds.jsonl --num 500 --format alpaca
 ```
 
-2. Initialize the provider config:
+**With OpenAI:**
 
 ```bash
-sdk init
-```
-
-3. Run the canonical demo:
-
-```bash
-sdk create --demo --num 10 --output ./showcase/customer_support_demo --showcase-summary
-```
-
-4. Inspect the result:
-
-```bash
-sdk inspect ./showcase/customer_support_demo
-```
-
-The LLM provider is selected in `sdk_config.yaml`. For local-first usage, use `ollama`. Otherwise point the tool at `openai`, `anthropic`, `vllm`, or another OpenAI-compatible API.
-
-## Configuration (`sdk_config.yaml`)
-
-The `sdk_config.yaml` file allows you to configure generation, quality, and decontamination settings. It is automatically created when you run `sdk init`.
-
-### LLM Providers
-The SDK supports concurrent request generation to speed up dataset expansion. Adjust `concurrent_requests` (default `4`) based on your API rate limits.
-
-**OpenAI (or compatible)**
-```yaml
-llm:
-  provider: openai
-  api_base: https://api.openai.com/v1
-  api_key: 'sk-...'
-  model: gpt-4o-mini
-  concurrent_requests: 10
-```
-
-**Anthropic**
-```yaml
-llm:
-  provider: anthropic
-  api_base: https://api.anthropic.com/v1
-  api_key: 'sk-ant-...'
-  model: claude-3-5-sonnet-20241022
-  concurrent_requests: 5
-```
-
-**Ollama (Local)**
-```yaml
-llm:
-  provider: ollama
-  api_base: http://localhost:11434/v1
-  api_key: 'ollama'
-  model: llama3.1
-  concurrent_requests: 2
+sdk init --provider openai
+export OPENAI_API_KEY=sk-...
+sdk run --domain "customer support chatbot" --num 1000 --format sharegpt
 ```
 
 ## Usage
 
-Main guided flow:
-
 ```bash
-sdk create
+# Check connectivity
+sdk health
+
+# Generate 200 examples from seeds, output as ShareGPT
+sdk generate --seeds my_seeds.jsonl --num 200 --format sharegpt --output ./data
+
+# Generate from domain description
+sdk generate --domain "medical Q&A for primary care" --num 500
+
+# Audit an existing dataset
+sdk audit ./data/dataset.jsonl
+
+# Export with quality filter (keep only score >= 8)
+sdk export ./data/dataset.jsonl --format alpaca --min-quality 8.0
+
+# Full pipeline: generate → audit → filter → export
+sdk run --seeds my_seeds.jsonl --num 1000 --format jsonl --min-quality 7.0
 ```
 
-Fast demo path:
+Seed files are JSONL with OpenAI message format:
 
-```bash
-sdk create --demo --num 10 --output ./showcase/customer_support_demo --showcase-summary
+```jsonl
+{"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
 ```
 
-Non-interactive scripting path:
-
-```bash
-sdk run --seeds examples/customer_support_seeds.jsonl --num 200 --output ./output/customer_support_demo
-```
-
-Seed file formats supported in JSONL:
-
-- OpenAI / ChatML: `{"messages":[{"role":"user","content":"..."},{"role":"assistant","content":"..."}]}`
-- Simple: `{"user":"...", "assistant":"..."}`
-- Alpaca: `{"instruction":"...", "input":"...", "output":"..."}`
-- ShareGPT: `{"conversations":[{"from":"human","value":"..."},{"from":"gpt","value":"..."}]}`
-
-Advanced commands:
-
-- `sdk benchmark`
-- `sdk eval <file>`
-- `sdk proof <file>`
-- `sdk export <file>`
-- `sdk publish-hf`
+See `examples/customer_support_seeds.jsonl` for a working example.
 
 ## Project Structure
 
-```text
-synth_dataset_kit/
-  cli.py
-  engine.py
-  config.py
-  llm_client.py
-  generators/
-  quality/
-  decontamination/
-  exporters/
-showcase/
-  customer_support_demo/
-docs/
-examples/
-tests/
 ```
-
-## Status
-
-- Stage: Beta
-- Current wedge: customer-support seed expansion
-- Checked-in proof: canonical showcase run, proof bundle, and publish bundle
-- Still missing: direct built-in fine-tune uplift results for the canonical showcase
+synth_dataset_kit/
+  cli.py              # CLI commands (init, generate, audit, export, run, health)
+  engine.py           # DatasetEngine — main orchestrator
+  config.py           # SDKConfig + per-provider defaults
+  models.py           # Dataset, Example, QualityReport data models
+  llm_client.py       # OpenAI-compatible LLM client
+  prompts.py          # Jinja2 prompt templates
+  generators/         # SeedExpander and TopicTreeGenerator
+  quality/            # LLM-as-judge, toxicity, PII, dedup
+  decontamination/    # Benchmark overlap detection
+  exporters/          # Output format converters
+examples/
+  customer_support_seeds.jsonl
+tests/
+  test_core.py
+```
 
 ## Testing
 
 ```bash
-pytest -q tests/test_core.py
+pip install -e ".[dev]"
+pytest tests/ -v
 ```
 
-## Useful Links
+## Contributing
 
-- Customer support showcase: [showcase/customer_support_demo/README.md](./showcase/customer_support_demo/README.md)
-- Customer support case study: [docs/case-study-customer-support.md](./docs/case-study-customer-support.md)
-- Support evaluation story: [docs/support-eval-story.md](./docs/support-eval-story.md)
-- Publish runbook: [showcase/customer_support_demo/PUBLISHING.md](./showcase/customer_support_demo/PUBLISHING.md)
-- Product positioning: [docs/product-positioning.md](./docs/product-positioning.md)
+Fork → branch → PR. Run `ruff check synth_dataset_kit/` before submitting.
 
 ---
 
