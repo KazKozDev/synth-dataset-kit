@@ -1,4 +1,4 @@
-# synth-dataset-kit
+# Synth Dataset Kit
 
 CLI tool for generating high-quality synthetic datasets for LLM fine-tuning.
 
