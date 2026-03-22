@@ -174,7 +174,7 @@ Seed files are JSONL with OpenAI message format:
 {"messages": [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]}
 ```
 
-See `examples/customer_support_seeds.jsonl` for a working example.
+See `examples/customer_support_seeds.jsonl` for a working example. The expanded dataset generated from these seeds is published on HuggingFace: [KazKozDev/synth-customer-support-expanded-R](https://huggingface.co/datasets/KazKozDev/synth-customer-support-expanded-R).
 
 ## Project Structure
 
