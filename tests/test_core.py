@@ -4,12 +4,11 @@ import json
 import tempfile
 from pathlib import Path
 
-from synth_dataset_kit.config import SDKConfig, LLMProvider
-from synth_dataset_kit.models import Dataset, Example, Message, Role, QualityReport
+from synth_dataset_kit.config import LLMProvider, SDKConfig
 from synth_dataset_kit.decontamination import Decontaminator
-from synth_dataset_kit.exporters import export_jsonl, export_alpaca, export_sharegpt, export_chatml
-from synth_dataset_kit.generators.seed_expander import load_seed_file, _parse_example
-
+from synth_dataset_kit.exporters import export_alpaca, export_chatml, export_jsonl, export_sharegpt
+from synth_dataset_kit.generators.seed_expander import _parse_example, load_seed_file
+from synth_dataset_kit.models import Dataset, Example, Message, QualityReport, Role
 
 # ─── CONFIG TESTS ────────────────────────────────────────────────────────────
 
@@ -47,10 +46,12 @@ def test_config_yaml_roundtrip():
 
 
 def test_example_creation():
-    ex = Example(messages=[
-        Message(role=Role.USER, content="Hello"),
-        Message(role=Role.ASSISTANT, content="Hi there!"),
-    ])
+    ex = Example(
+        messages=[
+            Message(role=Role.USER, content="Hello"),
+            Message(role=Role.ASSISTANT, content="Hi there!"),
+        ]
+    )
     assert ex.user_message == "Hello"
     assert ex.assistant_message == "Hi there!"
     assert len(ex.id) == 12
@@ -58,20 +59,24 @@ def test_example_creation():
 
 def test_dataset_operations():
     ds = Dataset(name="test")
-    ds.add(Example(
-        messages=[
-            Message(role=Role.USER, content="Q1"),
-            Message(role=Role.ASSISTANT, content="A1"),
-        ],
-        quality_score=8.0,
-    ))
-    ds.add(Example(
-        messages=[
-            Message(role=Role.USER, content="Q2"),
-            Message(role=Role.ASSISTANT, content="A2"),
-        ],
-        quality_score=4.0,
-    ))
+    ds.add(
+        Example(
+            messages=[
+                Message(role=Role.USER, content="Q1"),
+                Message(role=Role.ASSISTANT, content="A1"),
+            ],
+            quality_score=8.0,
+        )
+    )
+    ds.add(
+        Example(
+            messages=[
+                Message(role=Role.USER, content="Q2"),
+                Message(role=Role.ASSISTANT, content="A2"),
+            ],
+            quality_score=4.0,
+        )
+    )
     assert ds.size == 2
 
     filtered = ds.filter_by_quality(7.0)
@@ -81,20 +86,24 @@ def test_dataset_operations():
 
 def test_dataset_remove_contaminated():
     ds = Dataset(name="test")
-    ds.add(Example(
-        messages=[
-            Message(role=Role.USER, content="Clean"),
-            Message(role=Role.ASSISTANT, content="Clean answer"),
-        ],
-        decontamination_flags=[],
-    ))
-    ds.add(Example(
-        messages=[
-            Message(role=Role.USER, content="Contaminated"),
-            Message(role=Role.ASSISTANT, content="Bad answer"),
-        ],
-        decontamination_flags=["mmlu"],
-    ))
+    ds.add(
+        Example(
+            messages=[
+                Message(role=Role.USER, content="Clean"),
+                Message(role=Role.ASSISTANT, content="Clean answer"),
+            ],
+            decontamination_flags=[],
+        )
+    )
+    ds.add(
+        Example(
+            messages=[
+                Message(role=Role.USER, content="Contaminated"),
+                Message(role=Role.ASSISTANT, content="Bad answer"),
+            ],
+            decontamination_flags=["mmlu"],
+        )
+    )
     clean = ds.remove_contaminated()
     assert clean.size == 1
     assert clean.examples[0].user_message == "Clean"
@@ -157,30 +166,42 @@ def test_load_seed_file():
 
 def test_decontaminator_clean():
     decon = Decontaminator(benchmarks=["mmlu", "gsm8k"], use_benchmark_datasets=False)
-    ex = Example(messages=[
-        Message(role=Role.USER, content="How do I make pasta?"),
-        Message(role=Role.ASSISTANT, content="Boil water, add pasta, cook 8-10 mins."),
-    ])
+    ex = Example(
+        messages=[
+            Message(role=Role.USER, content="How do I make pasta?"),
+            Message(role=Role.ASSISTANT, content="Boil water, add pasta, cook 8-10 mins."),
+        ]
+    )
     flags = decon.check_example(ex)
     assert len(flags) == 0
 
 
 def test_decontaminator_catches_gsm8k():
     decon = Decontaminator(benchmarks=["gsm8k"], use_benchmark_datasets=False)
-    ex = Example(messages=[
-        Message(role=Role.USER, content="Janet's ducks lay 16 eggs per day. She eats three for breakfast."),
-        Message(role=Role.ASSISTANT, content="Let me calculate that."),
-    ])
+    ex = Example(
+        messages=[
+            Message(
+                role=Role.USER,
+                content="Janet's ducks lay 16 eggs per day. She eats three for breakfast.",
+            ),
+            Message(role=Role.ASSISTANT, content="Let me calculate that."),
+        ]
+    )
     flags = decon.check_example(ex)
     assert "gsm8k" in flags
 
 
 def test_decontaminator_catches_humaneval():
     decon = Decontaminator(benchmarks=["humaneval"], use_benchmark_datasets=False)
-    ex = Example(messages=[
-        Message(role=Role.USER, content="Write a function def has_close_elements that checks if any two numbers are close."),
-        Message(role=Role.ASSISTANT, content="Here's the implementation..."),
-    ])
+    ex = Example(
+        messages=[
+            Message(
+                role=Role.USER,
+                content="Write a function def has_close_elements that checks if any two numbers are close.",
+            ),
+            Message(role=Role.ASSISTANT, content="Here's the implementation..."),
+        ]
+    )
     flags = decon.check_example(ex)
     assert "humaneval" in flags
 
@@ -188,14 +209,22 @@ def test_decontaminator_catches_humaneval():
 def test_decontaminator_dataset():
     decon = Decontaminator(use_benchmark_datasets=False)
     ds = Dataset(name="test")
-    ds.add(Example(messages=[
-        Message(role=Role.USER, content="Normal question about cooking"),
-        Message(role=Role.ASSISTANT, content="Here's a recipe..."),
-    ]))
-    ds.add(Example(messages=[
-        Message(role=Role.USER, content="Janet's ducks lay 16 eggs per day"),
-        Message(role=Role.ASSISTANT, content="The answer is..."),
-    ]))
+    ds.add(
+        Example(
+            messages=[
+                Message(role=Role.USER, content="Normal question about cooking"),
+                Message(role=Role.ASSISTANT, content="Here's a recipe..."),
+            ]
+        )
+    )
+    ds.add(
+        Example(
+            messages=[
+                Message(role=Role.USER, content="Janet's ducks lay 16 eggs per day"),
+                Message(role=Role.ASSISTANT, content="The answer is..."),
+            ]
+        )
+    )
     ds = decon.check_dataset(ds)
     contaminated = [e for e in ds.examples if e.decontamination_flags]
     assert len(contaminated) == 1
@@ -207,10 +236,14 @@ def test_decontaminator_dataset():
 def _make_test_dataset() -> Dataset:
     ds = Dataset(name="test_export")
     for i in range(3):
-        ds.add(Example(messages=[
-            Message(role=Role.USER, content=f"Question {i}"),
-            Message(role=Role.ASSISTANT, content=f"Answer {i}"),
-        ]))
+        ds.add(
+            Example(
+                messages=[
+                    Message(role=Role.USER, content=f"Question {i}"),
+                    Message(role=Role.ASSISTANT, content=f"Answer {i}"),
+                ]
+            )
+        )
     return ds
 
 
