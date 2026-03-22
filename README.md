@@ -25,9 +25,15 @@ Aimed at ML engineers who need training data fast, without the cost of manual an
 
 ## Motivation
 
-Manual annotation costs $1–5 per example on platforms like Scale AI or Labelbox — a 10k dataset runs $10k–50k before quality review. Self-Instruct and Alpaca-style pipelines generate data cheaply but ship it without any quality gate: no scoring, no dedup, no benchmark contamination check. The result is noisy datasets that hurt rather than help fine-tuning.
+High-quality data is expensive, and cheap data is unreliable.
 
-More recent tools like Magpie or WizardLM improve quality, but are tied to specific model families or require significant infrastructure. `synth-dataset-kit` takes a different approach: bring your own 20–50 seed examples, plug in any OpenAI-compatible endpoint (including local Ollama or vLLM), and get a scored, decontaminated, export-ready dataset in one command. The decontamination step alone typically removes 3–8% of generated examples that overlap with MMLU, GSM8K, or HumanEval — overlap that would otherwise inflate eval scores without reflecting real capability gains.
+Manual annotation ranges from ~$0.02–$0.20 per example for simple tasks to $1–5+ for RLHF or expert review (e.g., Scale AI, Labelbox), making a 10k dataset cost anywhere from hundreds to $50k+.
+
+Synthetic pipelines (Self-Instruct, Alpaca-style) reduce cost but often introduce noise — duplicates, low-quality samples, and hallucinations — without proper filtering.
+
+In practice, more data ≠ better performance. Noisy datasets degrade fine-tuning.
+
+This project exists to fix that: to make dataset quality measurable, controllable, and reproducible before training.
 
 ## Features
 
