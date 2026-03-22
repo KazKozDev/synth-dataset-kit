@@ -7,6 +7,7 @@ import logging
 import random
 import re
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Template
 
@@ -333,8 +334,8 @@ class SeedExpander:
             return [0] * len(seeds)
 
         try:
-            from sentence_transformers import SentenceTransformer
             import numpy as np
+            from sentence_transformers import SentenceTransformer
         except ImportError:
             return list(range(len(seeds)))
 
@@ -574,7 +575,6 @@ class SeedExpander:
                 continue
             semantic_cluster = str(cluster.get("semantic_cluster", "0"))
             semantic_target = semantic_targets.get(semantic_cluster, 0)
-            semantic_actual = semantic_generated.get(semantic_cluster, 0)
             semantic_gap = semantic_gaps.get(semantic_cluster, 0) if semantic_mode else 0
             saturation_ratio = accepted / max(target, 1)
             long_tail = int(cluster.get("seed_count", 1)) <= max(1, median_seed_count)
@@ -799,41 +799,71 @@ class SeedExpander:
         )
 
         while generated < target:
-            stage = plan[plan_index % len(plan)]
-            plan_index += 1
+            # ── Build a batch of prompts for concurrent dispatch ──────────
+            concurrent_slots = max(1, getattr(self.client.config, "concurrent_requests", 4))
+            batch_stages: list[dict[str, str]] = []
+            batch_messages: list[list[dict[str, str]]] = []
 
-            topic = stage["topic"]
-            persona = stage["persona"]
-            difficulty = stage["difficulty"]
-            cluster_id = stage.get("cluster_id")
-            style = stage.get("style", "concise")
-            cluster_seeds = self._select_seeds_for_cluster(seeds, cluster_id)
-            seed_pool = cluster_seeds or seeds
-            sample_seeds = random.sample(seed_pool, min(3, len(seed_pool)))
-            remaining = min(self.config.batch_size, target - generated)
+            for _ in range(concurrent_slots):
+                if generated + len(batch_stages) * self.config.batch_size >= target + self.config.batch_size:
+                    break  # enough prompts queued already
+                stage = plan[plan_index % len(plan)]
+                plan_index += 1
 
-            template = Template(TEMPLATES["seed_expand"])
-            prompt = template.render(
-                domain=analysis.get("domain", self.config.domain),
-                tone=analysis.get("tone", "neutral"),
-                patterns=", ".join(analysis.get("common_patterns", [])),
-                difficulty=difficulty,
-                persona=persona,
-                topic=topic,
-                style=style,
-                language=self.config.language,
-                system_prompt=self.config.system_prompt,
-                sample_seeds=sample_seeds,
-                batch_size=remaining,
-            )
+                topic = stage["topic"]
+                persona = stage["persona"]
+                difficulty = stage["difficulty"]
+                cluster_id = stage.get("cluster_id")
+                style = stage.get("style", "concise")
+                cluster_seeds = self._select_seeds_for_cluster(seeds, cluster_id)
+                seed_pool = cluster_seeds or seeds
+                sample_seeds = random.sample(seed_pool, min(3, len(seed_pool)))
+                remaining = min(self.config.batch_size, target - generated - len(batch_stages) * self.config.batch_size)
+                if remaining <= 0:
+                    break
 
-            try:
-                result = self.client.complete_json(
-                    [{"role": "user", "content": prompt}],
-                    temperature=self.config.generation_temperature
-                    if hasattr(self.config, "generation_temperature")
-                    else 0.8,
+                template = Template(TEMPLATES["seed_expand"])
+                prompt = template.render(
+                    domain=analysis.get("domain", self.config.domain),
+                    tone=analysis.get("tone", "neutral"),
+                    patterns=", ".join(analysis.get("common_patterns", [])),
+                    difficulty=difficulty,
+                    persona=persona,
+                    topic=topic,
+                    style=style,
+                    language=self.config.language,
+                    system_prompt=self.config.system_prompt,
+                    sample_seeds=sample_seeds,
+                    batch_size=remaining,
                 )
+                batch_stages.append(stage)
+                batch_messages.append([{"role": "user", "content": prompt}])
+
+            if not batch_messages:
+                break
+
+            # ── Dispatch all prompts concurrently ─────────────────────────
+            temperature = (
+                self.config.generation_temperature
+                if hasattr(self.config, "generation_temperature")
+                else 0.8
+            )
+            try:
+                batch_results = self.client.batch_complete_json(
+                    batch_messages,
+                    temperature=temperature,
+                )
+            except Exception as e:
+                logger.error(f"Concurrent generation batch failed: {e}")
+                continue
+
+            # ── Collect results from all concurrent responses ─────────────
+            for stage, result in zip(batch_stages, batch_results, strict=False):
+                topic = stage["topic"]
+                persona = stage["persona"]
+                difficulty = stage["difficulty"]
+                cluster_id = stage.get("cluster_id")
+                style = stage.get("style", "concise")
 
                 examples_data = result.get("examples", []) if isinstance(result, dict) else []
                 for ex_data in examples_data:
@@ -867,11 +897,7 @@ class SeedExpander:
                         candidates.append(example)
                         generated += 1
 
-                logger.info(f"Generated {generated}/{target} examples")
-
-            except Exception as e:
-                logger.error(f"Generation batch failed: {e}")
-                continue
+            logger.info(f"Generated {generated}/{target} examples")
 
         return candidates
 

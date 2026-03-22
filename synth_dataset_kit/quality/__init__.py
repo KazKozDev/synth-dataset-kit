@@ -71,14 +71,30 @@ class QualityJudge:
         return example.quality_score or 5.0
 
     def score_dataset(self, dataset: Dataset) -> Dataset:
-        """Score all examples in a dataset."""
+        """Score all examples in a dataset concurrently.
+
+        Uses the LLM client's concurrency settings (``concurrent_requests``)
+        to score multiple examples in parallel. Each example is mutated
+        independently, so thread-safety is straightforward.
+        """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
         total = dataset.size
         logger.info(f"Scoring {total} examples...")
 
-        for i, example in enumerate(dataset.examples):
-            self.score_example(example)
-            if (i + 1) % 10 == 0:
-                logger.info(f"Scored {i + 1}/{total}")
+        max_workers = max(1, getattr(self.client, "_max_workers", 4))
+        scored = 0
+
+        with ThreadPoolExecutor(max_workers=max_workers) as pool:
+            future_to_index = {
+                pool.submit(self.score_example, example): i
+                for i, example in enumerate(dataset.examples)
+            }
+            for future in as_completed(future_to_index):
+                future.result()  # propagate exceptions; example is mutated in-place
+                scored += 1
+                if scored % 10 == 0:
+                    logger.info(f"Scored {scored}/{total}")
 
         return dataset
 
@@ -289,8 +305,8 @@ class QualityJudge:
     def _compute_embedding_diversity(self, dataset: Dataset) -> float | None:
         """Optionally compute semantic diversity with sentence embeddings."""
         try:
-            from sentence_transformers import SentenceTransformer
             import numpy as np
+            from sentence_transformers import SentenceTransformer
         except ImportError:
             return None
 

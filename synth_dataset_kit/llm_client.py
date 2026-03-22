@@ -7,7 +7,9 @@ import logging
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from threading import Semaphore
 from typing import Any
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -32,6 +34,8 @@ class LLMClient:
             max_retries=config.max_retries,
         )
         self._recommendation_cache_path = Path(".sdk_cache/recommendations/ollama_models.json")
+        self._semaphore = Semaphore(max(1, config.concurrent_requests))
+        self._max_workers = max(1, config.concurrent_requests)
 
     def complete(
         self,
@@ -151,16 +155,84 @@ class LLMClient:
         message_batches: list[list[dict[str, str]]],
         temperature: float | None = None,
     ) -> list[str]:
-        """Process multiple requests sequentially (async version later)."""
-        results = []
-        for messages in message_batches:
+        """Process multiple requests concurrently using a thread pool.
+
+        Concurrency is governed by ``config.concurrent_requests`` (default 4).
+        A semaphore ensures no more than that many in-flight requests hit the
+        LLM provider at any time, acting as a simple rate limiter.
+        """
+        if not message_batches:
+            return []
+
+        # For a single request, skip the pool overhead.
+        if len(message_batches) == 1:
             try:
-                result = self.complete(messages, temperature=temperature)
-                results.append(result)
+                return [self.complete(message_batches[0], temperature=temperature)]
             except Exception as e:
                 logger.error(f"Batch item failed: {e}")
-                results.append("")
-        return results
+                return [""]
+
+        results: list[str | None] = [None] * len(message_batches)
+
+        def _worker(index: int, messages: list[dict[str, str]]) -> tuple[int, str]:
+            self._semaphore.acquire()
+            try:
+                return index, self.complete(messages, temperature=temperature)
+            except Exception as e:
+                logger.error(f"Batch item {index} failed: {e}")
+                return index, ""
+            finally:
+                self._semaphore.release()
+
+        with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
+            futures = [
+                pool.submit(_worker, i, msgs)
+                for i, msgs in enumerate(message_batches)
+            ]
+            for future in as_completed(futures):
+                idx, text = future.result()
+                results[idx] = text
+
+        return [r or "" for r in results]
+
+    def batch_complete_json(
+        self,
+        message_batches: list[list[dict[str, str]]],
+        temperature: float | None = None,
+    ) -> list[dict | list]:
+        """Process multiple JSON requests concurrently.
+
+        Same concurrency semantics as :meth:`batch_complete`, but each
+        response is parsed as JSON via :meth:`complete_json`.
+        """
+        if not message_batches:
+            return []
+
+        if len(message_batches) == 1:
+            return [self.complete_json(message_batches[0], temperature=temperature)]
+
+        results: list[dict | list | None] = [None] * len(message_batches)
+
+        def _worker(index: int, messages: list[dict[str, str]]) -> tuple[int, dict | list]:
+            self._semaphore.acquire()
+            try:
+                return index, self.complete_json(messages, temperature=temperature)
+            except Exception as e:
+                logger.error(f"Batch JSON item {index} failed: {e}")
+                return index, {}
+            finally:
+                self._semaphore.release()
+
+        with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
+            futures = [
+                pool.submit(_worker, i, msgs)
+                for i, msgs in enumerate(message_batches)
+            ]
+            for future in as_completed(futures):
+                idx, parsed = future.result()
+                results[idx] = parsed
+
+        return [r if r is not None else {} for r in results]
 
     def health_check(self) -> bool:
         """Verify the LLM endpoint is reachable."""
