@@ -200,6 +200,11 @@ Code style: `ruff` with `line-length = 100`, Python 3.10+ syntax, type hints on 
 
 ---
 
-MIT License
+MIT - see LICENSE
 
-[LinkedIn](https://www.linkedin.com/in/kazkozdev/) &middot; [Email](mailto:kazkozdev@gmail.com)
+If you like this project, please give it a star ⭐
+
+For questions, feedback, or support, reach out to:
+
+[LinkedIn](https://www.linkedin.com/in/kazkozdev/)
+[Email](mailto:kazkozdev@gmail.com)
