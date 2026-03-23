@@ -2,14 +2,16 @@
   <img src="docs/assets/logo-data.png" alt="Synthetic Data Foundry logo" height="200" style="display: block; margin: 0 auto;">
 </p>
 
-# Synth Dataset Kit
+<h1 align="center">Synth Dataset Kit</h1>
 
-Generate high-quality synthetic datasets for LLM fine-tuning from seed examples or domain descriptions.
+<p align="center">Generate high-quality synthetic datasets for LLM fine-tuning from seed examples or domain descriptions.</p>
 
-![CI](https://github.com/KazKozDev/synth-dataset-kit/actions/workflows/ci.yml/badge.svg)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-0.1.0-orange)
+<p align="center">
+  <img src="https://github.com/KazKozDev/synth-dataset-kit/actions/workflows/ci.yml/badge.svg" alt="CI">
+  <img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/version-0.1.0-orange" alt="Version">
+</p>
 
 ## What it does
 

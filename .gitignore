@@ -30,6 +30,7 @@ data/outputs/*.json
 # IDE
 .vscode/
 .idea/
+.claude/
 
 # Testing
 .coverage
@@ -45,5 +46,21 @@ venv/
 
 # Dependency check
 requirements_check.txt
+
+# Local scratch files
+current_readme.md
+hf_readme.md
+
+# Local one-off scripts
+scripts/delete_hf_spaces.py
+scripts/eval_diversity.py
+scripts/fix_dataset.py
+scripts/fix_dataset_clean.py
+scripts/fix_hf_repo.py
+scripts/update_readme.py
+scripts/upload_hf_readme.py
+scripts/upload_readme.py
+scripts/upload_to_hf.py
+
 .DS_Store
 **/.DS_Store
