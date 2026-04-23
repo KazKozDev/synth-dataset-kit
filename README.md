@@ -2,7 +2,6 @@
   <img src="docs/assets/logo-data.png" alt="Synthetic Data Foundry logo" height="200" style="display: block; margin: 0 auto;">
 </p>
 
-<h1 align="center">Synth Dataset Kit</h1>
 
 <p align="center">Generate high-quality synthetic datasets for LLM fine-tuning from seed examples or domain descriptions.</p>
 
