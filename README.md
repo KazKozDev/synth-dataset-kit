@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo-data.png" alt="Synthetic Data Foundry logo" height="200" style="display: block; margin: 0 auto;">
+  <img src="docs/assets/logo-data.png" alt="Synthetic Data Foundry logo" height="160" style="display: block; margin: 0 auto;">
 </p>
 
 
